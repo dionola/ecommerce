@@ -228,12 +228,196 @@ public sealed class EcommerceService(
         await db.SaveChangesAsync(ct);
     }
 
+    public async Task<IReadOnlyList<PromoDto>> GetPromosAsync(PromoFilters filters, CancellationToken ct)
+    {
+        ValidatePage(filters.Page, filters.Limit);
+        var query = db.Promos.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(filters.Code))
+        {
+            var code = filters.Code.ToLower();
+            query = query.Where(p => p.Code.ToLower().Contains(code));
+        }
+        if (filters.Active is true) query = query.Where(p => p.ActiveUntil == null || p.ActiveUntil > DateTimeOffset.UtcNow);
+        if (filters.Active is false) query = query.Where(p => p.ActiveUntil != null && p.ActiveUntil <= DateTimeOffset.UtcNow);
+        if (!string.IsNullOrWhiteSpace(filters.DiscountType)) query = query.Where(p => p.DiscountType == filters.DiscountType);
+        query = (filters.SortBy, filters.Order.ToLowerInvariant()) switch
+        {
+            ("discount_value", "desc") => query.OrderByDescending(p => p.DiscountValue),
+            ("discount_value", _) => query.OrderBy(p => p.DiscountValue),
+            ("active_until", "desc") => query.OrderByDescending(p => p.ActiveUntil),
+            ("active_until", _) => query.OrderBy(p => p.ActiveUntil),
+            ("code", "desc") => query.OrderByDescending(p => p.Code),
+            _ => query.OrderBy(p => p.Code)
+        };
+        return await query.Skip((filters.Page - 1) * filters.Limit).Take(filters.Limit).Select(p => ToPromoDto(p)).ToListAsync(ct);
+    }
+
+    public async Task<PromoDto> GetPromoAsync(int id, CancellationToken ct) => ToPromoDto(await FindPromoAsync(id, ct));
+
+    public async Task<PromoDto> CreatePromoAsync(CreatePromoDto dto, CancellationToken ct)
+    {
+        ValidatePromo(dto.Code, dto.DiscountType, dto.DiscountValue);
+        var promo = new Promo { Code = dto.Code, DiscountType = dto.DiscountType, DiscountValue = dto.DiscountValue, ActiveUntil = dto.ActiveUntil };
+        db.Promos.Add(promo);
+        await db.SaveChangesAsync(ct);
+        return ToPromoDto(promo);
+    }
+
+    public async Task<PromoDto> UpdatePromoAsync(int id, UpdatePromoDto dto, CancellationToken ct)
+    {
+        var promo = await FindPromoAsync(id, ct);
+        if (dto.Code is null && dto.DiscountType is null && dto.DiscountValue is null && dto.ActiveUntil is null) throw new ApiException("At least one field must be provided for update", 400);
+        if (dto.Code is not null) promo.Code = dto.Code;
+        if (dto.DiscountType is not null) promo.DiscountType = dto.DiscountType;
+        if (dto.DiscountValue is not null) promo.DiscountValue = dto.DiscountValue.Value;
+        if (dto.ActiveUntil is not null) promo.ActiveUntil = dto.ActiveUntil;
+        await db.SaveChangesAsync(ct);
+        return ToPromoDto(promo);
+    }
+
+    public async Task DeletePromoAsync(int id, CancellationToken ct)
+    {
+        var promo = await FindPromoAsync(id, ct);
+        db.Promos.Remove(promo);
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<CartDto> GetCartAsync(AuthUser user, CancellationToken ct) => ToCartDto(await GetOrCreateCartAsync(user, ct));
+
+    public async Task<CartDto> AddCartItemAsync(AuthUser user, AddCartItemDto dto, CancellationToken ct)
+    {
+        if (dto.ProductId <= 0 || dto.Quantity <= 0) throw new ApiException("Invalid body schema", 400);
+        var cart = await GetOrCreateCartAsync(user, ct);
+        var product = await db.Products.FindAsync([dto.ProductId], ct) ?? throw new ApiException($"Product with id {dto.ProductId} not found", 404);
+        var item = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
+        var requested = dto.Quantity + (item?.Quantity ?? 0);
+        if (product.StockQuantity < requested) throw new ApiException($"Insufficient stock. Available: {product.StockQuantity}, Requested: {requested}", 404);
+        if (item is null) cart.Items.Add(new CartItem { CartId = cart.Id, ProductId = product.Id, Quantity = dto.Quantity, Product = product });
+        else item.Quantity = requested;
+        cart.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return ToCartDto(await LoadCartAsync(cart.Id, ct));
+    }
+
+    public async Task<CartDto> UpdateCartItemAsync(AuthUser user, int itemId, UpdateCartItemDto dto, CancellationToken ct)
+    {
+        if (dto.Quantity <= 0) throw new ApiException("Invalid body schema", 400);
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var item = await db.CartItems.Include(i => i.Product).Include(i => i.Cart).ThenInclude(c => c.Items).ThenInclude(i => i.Product).FirstOrDefaultAsync(i => i.Id == itemId && i.Cart.UserId == dbUser.Id, ct)
+            ?? throw new ApiException($"Cart item with id {itemId} not found", 404);
+        if (item.Product.StockQuantity < dto.Quantity) throw new ApiException($"Insufficient stock. Available: {item.Product.StockQuantity}, Requested: {dto.Quantity}", 404);
+        item.Quantity = dto.Quantity;
+        item.Cart.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return ToCartDto(await LoadCartAsync(item.CartId, ct));
+    }
+
+    public async Task<CartDto> RemoveCartItemAsync(AuthUser user, int itemId, CancellationToken ct)
+    {
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var item = await db.CartItems.Include(i => i.Cart).FirstOrDefaultAsync(i => i.Id == itemId && i.Cart.UserId == dbUser.Id, ct)
+            ?? throw new ApiException($"Cart item with id {itemId} not found", 404);
+        var cartId = item.CartId;
+        db.CartItems.Remove(item);
+        item.Cart.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return ToCartDto(await LoadCartAsync(cartId, ct));
+    }
+
+    public async Task<CartDto> ClearCartAsync(AuthUser user, CancellationToken ct)
+    {
+        var cart = await GetOrCreateCartAsync(user, ct);
+        db.CartItems.RemoveRange(cart.Items);
+        cart.Items.Clear();
+        cart.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return ToCartDto(cart);
+    }
+
+    public async Task<WishlistDto> GetWishlistAsync(AuthUser user, CancellationToken ct) => ToWishlistDto(await GetOrCreateWishlistAsync(user, ct));
+
+    public async Task<WishlistDto> AddWishlistItemAsync(AuthUser user, AddWishlistItemDto dto, CancellationToken ct)
+    {
+        var wishlist = await GetOrCreateWishlistAsync(user, ct);
+        _ = await db.Products.FindAsync([dto.ProductId], ct) ?? throw new ApiException($"Product with id {dto.ProductId} not found", 404);
+        if (wishlist.Items.Any(i => i.ProductId == dto.ProductId)) throw new ApiException("Product already exists in wishlist", 422);
+        wishlist.Items.Add(new WishlistItem { WishlistId = wishlist.Id, ProductId = dto.ProductId });
+        await db.SaveChangesAsync(ct);
+        return ToWishlistDto(await LoadWishlistAsync(wishlist.Id, ct));
+    }
+
+    public async Task<WishlistDto> RemoveWishlistItemAsync(AuthUser user, int productId, CancellationToken ct)
+    {
+        var wishlist = await GetOrCreateWishlistAsync(user, ct);
+        var item = wishlist.Items.FirstOrDefault(i => i.ProductId == productId) ?? throw new ApiException($"Product with id {productId} not found in wishlist", 404);
+        db.WishlistItems.Remove(item);
+        await db.SaveChangesAsync(ct);
+        return ToWishlistDto(await LoadWishlistAsync(wishlist.Id, ct));
+    }
+
+    public async Task<WishlistDto> ClearWishlistAsync(AuthUser user, CancellationToken ct)
+    {
+        var wishlist = await GetOrCreateWishlistAsync(user, ct);
+        db.WishlistItems.RemoveRange(wishlist.Items);
+        await db.SaveChangesAsync(ct);
+        return ToWishlistDto(await LoadWishlistAsync(wishlist.Id, ct));
+    }
+
     // --- private helpers (partial, more added in later commits) ---
 
     private IQueryable<Product> ProductQuery() => db.Products.Include(p => p.Images).Include(p => p.Statuses).AsSplitQuery();
 
     private async Task<Product> FindProductAsync(int id, CancellationToken ct) =>
         await ProductQuery().FirstOrDefaultAsync(p => p.Id == id, ct) ?? throw new ApiException($"Product with id {id} not found", 404);
+
+    private async Task<Promo> FindPromoAsync(int id, CancellationToken ct) =>
+        await db.Promos.FindAsync([id], ct) ?? throw new ApiException($"Promo with id {id} not found", 404);
+
+    private async Task<User> GetOrCreateUserAsync(AuthUser user, CancellationToken ct, string? fullName = null)
+    {
+        if (string.IsNullOrWhiteSpace(user.Email)) throw new ApiException("Unauthorized", 401);
+        var existing = await db.StoreUsers.FirstOrDefaultAsync(u => u.IdentityUserId == user.Sub || u.Email == user.Email, ct);
+        if (existing is not null)
+        {
+            if (string.IsNullOrWhiteSpace(existing.IdentityUserId)) existing.IdentityUserId = user.Sub;
+            if (fullName is not null) existing.FullName = fullName;
+            if (existing.Role == "customer" && user.HighestRole is "admin" or "superadmin") existing.Role = user.HighestRole;
+            await db.SaveChangesAsync(ct);
+            return existing;
+        }
+        var created = new User { IdentityUserId = user.Sub, Email = user.Email, FullName = fullName, Role = user.HighestRole ?? "customer" };
+        db.StoreUsers.Add(created);
+        await db.SaveChangesAsync(ct);
+        return created;
+    }
+
+    private async Task<Cart> GetOrCreateCartAsync(AuthUser user, CancellationToken ct)
+    {
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var cart = await db.Carts.Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images).Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Statuses).FirstOrDefaultAsync(c => c.UserId == dbUser.Id, ct);
+        if (cart is not null) return cart;
+        cart = new Cart { UserId = dbUser.Id };
+        db.Carts.Add(cart);
+        await db.SaveChangesAsync(ct);
+        return await LoadCartAsync(cart.Id, ct);
+    }
+
+    private async Task<Cart> LoadCartAsync(int cartId, CancellationToken ct) =>
+        await db.Carts.Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images).Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Statuses).FirstAsync(c => c.Id == cartId, ct);
+
+    private async Task<Wishlist> GetOrCreateWishlistAsync(AuthUser user, CancellationToken ct)
+    {
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var wishlist = await db.Wishlists.Include(w => w.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images).Include(w => w.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Statuses).FirstOrDefaultAsync(w => w.UserId == dbUser.Id, ct);
+        if (wishlist is not null) return wishlist;
+        wishlist = new Wishlist { UserId = dbUser.Id };
+        db.Wishlists.Add(wishlist);
+        await db.SaveChangesAsync(ct);
+        return await LoadWishlistAsync(wishlist.Id, ct);
+    }
+
+    private async Task<Wishlist> LoadWishlistAsync(int id, CancellationToken ct) =>
+        await db.Wishlists.Include(w => w.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images).Include(w => w.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Statuses).FirstAsync(w => w.Id == id, ct);
 
     private static ProductDto ToProductDto(Product p) => new(p.Id, p.Name, p.Description, p.BasePrice, p.CountryOfOrigin, p.StockQuantity, p.ManufacturerId, p.Images.OrderByDescending(i => i.IsMain).ThenBy(i => i.SortOrder).ThenBy(i => i.Id).Select(i => new ProductImageDto(i.Id, i.Url, i.IsMain)).ToList(), p.Statuses.Select(s => s.StatusType).Distinct().OrderBy(s => s).ToList());
 
@@ -253,4 +437,21 @@ public sealed class EcommerceService(
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length > 255 || price < 0 || stock < 0) throw new ApiException("Invalid body schema", 400);
     }
+
+    private static void ValidatePromo(string code, string type, decimal value)
+    {
+        if (string.IsNullOrWhiteSpace(code) || code.Length > 50 || type is not ("percentage" or "fixed") || value <= 0) throw new ApiException("Invalid body schema", 400);
+    }
+
+    private static PromoDto ToPromoDto(Promo p) => new(p.Id, p.Code, p.DiscountType, p.DiscountValue, p.ActiveUntil);
+
+    private static CartDto ToCartDto(Cart c)
+    {
+        var items = c.Items.Select(i => new CartItemDto(i.Id, ToProductDto(i.Product), i.Quantity)).ToList();
+        var subtotal = items.Sum(i => i.Product.BasePrice * i.Quantity);
+        return new CartDto(c.Id, c.UserId, c.UpdatedAt, items, subtotal, subtotal);
+    }
+
+    private static WishlistDto ToWishlistDto(Wishlist w) =>
+        new(w.Id, w.UserId, w.Items.Select(i => new WishlistItemDto(ToProductDto(i.Product))).ToList());
 }
