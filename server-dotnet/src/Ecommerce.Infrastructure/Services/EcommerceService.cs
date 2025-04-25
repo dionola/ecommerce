@@ -363,7 +363,181 @@ public sealed class EcommerceService(
         return ToWishlistDto(await LoadWishlistAsync(wishlist.Id, ct));
     }
 
-    // --- private helpers (partial, more added in later commits) ---
+    public async Task<IReadOnlyList<OrderDto>> GetOrdersAsync(AuthUser user, OrderFilters filters, CancellationToken ct)
+    {
+        ValidatePage(filters.Page, filters.Limit);
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var query = OrderQuery();
+        if (!user.IsAdmin || filters.UserId is null) query = query.Where(o => o.UserId == dbUser.Id);
+        if (user.IsAdmin && filters.UserId is not null) query = query.Where(o => o.UserId == filters.UserId);
+        if (!string.IsNullOrWhiteSpace(filters.Status)) query = query.Where(o => o.Status == filters.Status);
+        query = (filters.SortBy, filters.Order.ToLowerInvariant()) switch
+        {
+            ("total_amount", "asc") => query.OrderBy(o => o.TotalAmount),
+            ("total_amount", _) => query.OrderByDescending(o => o.TotalAmount),
+            ("status", "asc") => query.OrderBy(o => o.Status),
+            ("status", _) => query.OrderByDescending(o => o.Status),
+            ("created_at", "asc") => query.OrderBy(o => o.CreatedAt),
+            _ => query.OrderByDescending(o => o.CreatedAt)
+        };
+        return await query.Skip((filters.Page - 1) * filters.Limit).Take(filters.Limit).Select(o => ToOrderDto(o)).ToListAsync(ct);
+    }
+
+    public async Task<OrderDto> GetOrderAsync(AuthUser user, int id, CancellationToken ct)
+    {
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var order = await OrderQuery().FirstOrDefaultAsync(o => o.Id == id && (user.IsAdmin || o.UserId == dbUser.Id), ct)
+            ?? throw new ApiException($"Order with id {id} not found", 404);
+        return ToOrderDto(order);
+    }
+
+    public async Task<OrderDto> CreateOrderAsync(AuthUser user, CreateOrderDto dto, CancellationToken ct)
+    {
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        if (db.Database.ProviderName?.Contains("InMemory", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return await CreateOrderWithoutExplicitTransactionAsync(dbUser.Id, dto, ct);
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var result = await CreateOrderWithoutExplicitTransactionAsync(dbUser.Id, dto, ct);
+        await transaction.CommitAsync(ct);
+        return result;
+    }
+
+    private async Task<OrderDto> CreateOrderWithoutExplicitTransactionAsync(int userId, CreateOrderDto dto, CancellationToken ct)
+    {
+        var cart = await LoadCartByUserIdAsync(userId, ct);
+        if (cart.Items.Count == 0) throw new ApiException("Cannot create order from empty cart. Please add items to your cart before checkout.", 422);
+
+        foreach (var item in cart.Items)
+        {
+            if (item.Product.StockQuantity < item.Quantity) throw new ApiException($"Insufficient stock for product {item.Product.Name}. Available: {item.Product.StockQuantity}, Requested: {item.Quantity}", 422);
+        }
+
+        var subtotal = cart.Items.Sum(i => i.Product.BasePrice * i.Quantity);
+        var (total, promoId) = await ApplyPromoAsync(subtotal, dto.PromoId, dto.PromoCode, ct);
+        var order = new Order { UserId = userId, TotalAmount = total, PromoId = promoId, Status = "pending", ShippingAddressJson = dto.ShippingAddress.GetRawText() };
+        db.Orders.Add(order);
+        foreach (var item in cart.Items)
+        {
+            order.Items.Add(new OrderItem { ProductId = item.ProductId, Quantity = item.Quantity, PriceAtPurchase = item.Product.BasePrice });
+            item.Product.StockQuantity -= item.Quantity;
+        }
+        if (total == 0) db.CartItems.RemoveRange(cart.Items);
+        await db.SaveChangesAsync(ct);
+        return ToOrderDto(await OrderQuery().FirstAsync(o => o.Id == order.Id, ct));
+    }
+
+    public async Task<OrderDto> UpdateOrderAsync(AuthUser user, int id, UpdateOrderDto dto, CancellationToken ct)
+    {
+        if (dto.Status is null && dto.PaymentIntentId is null) throw new ApiException("At least one field must be provided for update", 400);
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var order = await OrderQuery().FirstOrDefaultAsync(o => o.Id == id && (user.IsAdmin || o.UserId == dbUser.Id), ct)
+            ?? throw new ApiException($"Order with id {id} not found", 404);
+        if (dto.Status is not null) order.Status = dto.Status;
+        if (dto.PaymentIntentId is not null) order.PaymentIntentId = dto.PaymentIntentId;
+        await db.SaveChangesAsync(ct);
+        return ToOrderDto(order);
+    }
+
+    public async Task DeleteOrderAsync(int id, CancellationToken ct)
+    {
+        var order = await db.Orders.FindAsync([id], ct) ?? throw new ApiException($"Order with id {id} not found", 404);
+        if (order.Status != "pending") throw new ApiException($"Cannot delete order with status: {order.Status}. Only pending orders can be deleted.", 422);
+        db.Orders.Remove(order);
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<BannerDto> GetBannerAsync(CancellationToken ct)
+    {
+        var banner = await db.BannerConfigs.OrderBy(b => b.Id).FirstOrDefaultAsync(ct);
+        if (banner is not null) return ToBannerDto(banner);
+        banner = new BannerConfig
+        {
+            Title = "Discover thoughtfully sourced essentials",
+            Description = "Shop our latest collection with fast checkout and secure payments.",
+            ImageUrl = "https://images.unsplash.com/photo-1441986300917-64674bd600d8",
+            ButtonText = "Shop now"
+        };
+        db.BannerConfigs.Add(banner);
+        await db.SaveChangesAsync(ct);
+        return ToBannerDto(banner);
+    }
+
+    public async Task<BannerDto> UpdateBannerAsync(UpdateBannerDto dto, CancellationToken ct)
+    {
+        var banner = await db.BannerConfigs.OrderBy(b => b.Id).FirstOrDefaultAsync(ct) ?? throw new ApiException("Banner not found", 404);
+        if (dto.Title is not null) banner.Title = dto.Title;
+        if (dto.Description is not null) banner.Description = dto.Description;
+        if (dto.ImageUrl is not null) banner.ImageUrl = dto.ImageUrl;
+        if (dto.Category is not null) banner.Category = dto.Category;
+        if (dto.ButtonText is not null) banner.ButtonText = dto.ButtonText;
+        banner.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return ToBannerDto(banner);
+    }
+
+    public async Task<IReadOnlyList<UserListItemDto>> GetUsersAsync(CancellationToken ct) =>
+        await db.StoreUsers.Include(u => u.Orders).ThenInclude(o => o.Items)
+            .OrderByDescending(u => u.CreatedAt).ThenByDescending(u => u.Id)
+            .Select(u => new UserListItemDto(u.Id, u.Email, u.FullName, u.IdentityUserId, u.Role, u.Orders.Count, u.Orders.SelectMany(o => o.Items).Sum(i => i.Quantity), u.CreatedAt.ToString("O")))
+            .ToListAsync(ct);
+
+    public async Task<CreateUserResponseDto> CreateUserAsync(AuthUser creator, CreateUserDto dto, CancellationToken ct)
+    {
+        ValidateRolePermission(creator.HighestRole, dto.Role);
+        var created = await identityAdminClient.CreateAdminUserAsync(dto.Email, dto.Password, dto.FullName, dto.Role, ct);
+        var user = await GetOrCreateUserAsync(new AuthUser(created.ObjectId, dto.Email, [dto.Role]), ct, dto.FullName);
+        user.Role = dto.Role;
+        await db.SaveChangesAsync(ct);
+        return new CreateUserResponseDto(user.Id, user.Email, user.FullName, user.Role, user.IdentityUserId);
+    }
+
+    public async Task<UserListItemDto> UpdateUserRoleAsync(AuthUser creator, int id, string role, CancellationToken ct)
+    {
+        ValidateRolePermission(creator.HighestRole, role);
+        var user = await db.StoreUsers.Include(u => u.Orders).ThenInclude(o => o.Items).FirstOrDefaultAsync(u => u.Id == id, ct) ?? throw new ApiException($"User with id {id} not found", 422);
+        user.Role = role;
+        await identityAdminClient.SetUserRoleAsync(user.Email, role, ct);
+        await db.SaveChangesAsync(ct);
+        return new UserListItemDto(user.Id, user.Email, user.FullName, user.IdentityUserId, user.Role, user.Orders.Count, user.Orders.SelectMany(o => o.Items).Sum(i => i.Quantity), user.CreatedAt.ToString("O"));
+    }
+
+    public async Task<CheckoutSessionResponseDto> CreateCheckoutSessionAsync(AuthUser user, CreateCheckoutSessionDto dto, string frontendUrl, string currency, CancellationToken ct)
+    {
+        if (!paymentGateway.IsAvailable) throw new ApiException("Payments are currently unavailable", 503);
+        var dbUser = await GetOrCreateUserAsync(user, ct);
+        var order = await OrderQuery().FirstOrDefaultAsync(o => o.Id == dto.OrderId, ct) ?? throw new ApiException($"Order with id {dto.OrderId} not found", 404);
+        if (!user.IsAdmin && order.UserId != dbUser.Id) throw new ApiException("Forbidden - Order does not belong to user", 403);
+        var lineItems = order.Items.Select(i => new CheckoutLineItem(i.Product.Name, (long)Math.Round(i.PriceAtPurchase * 100), i.Quantity, i.Product.Images.OrderByDescending(x => x.IsMain).ThenBy(x => x.SortOrder).FirstOrDefault()?.Url)).ToList();
+        if (lineItems.Count == 0) throw new ApiException($"Order {order.Id} has no items for checkout", 500);
+        var successUrl = dto.SuccessUrl ?? $"{frontendUrl}/checkout/return?order_id={dto.OrderId}&status=success";
+        var cancelUrl = dto.CancelUrl ?? $"{frontendUrl}/checkout?order_id={dto.OrderId}&status=canceled";
+        return await paymentGateway.CreateCheckoutSessionAsync(new CreateCheckoutSessionRequest(order.Id, currency, successUrl, cancelUrl, lineItems, new Dictionary<string, string> { ["user_id"] = dbUser.Id.ToString() }), ct);
+    }
+
+    public async Task<object> VerifyCheckoutSessionAsync(AuthUser user, string sessionId, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId)) throw new ApiException("Session ID is required", 400);
+        if (!paymentGateway.IsAvailable) throw new ApiException("Payments are currently unavailable", 503);
+        var result = await paymentGateway.VerifyCheckoutSessionAsync(sessionId, ct);
+        if (result.Status is not ("paid" or "complete")) return new { status = "failed", message = $"Payment status is {result.Status}" };
+        if (result.OrderId is not null)
+        {
+            var order = await OrderQuery().FirstOrDefaultAsync(o => o.Id == result.OrderId, ct) ?? throw new ApiException($"Order with id {result.OrderId} not found", 404);
+            var dbUser = await GetOrCreateUserAsync(user, ct);
+            if (order.UserId != dbUser.Id) throw new ApiException("Forbidden - Order does not belong to user", 403);
+            order.Status = "paid";
+            if (result.PaymentIntentId is not null) order.PaymentIntentId = result.PaymentIntentId;
+            var cart = await LoadCartByUserIdAsync(dbUser.Id, ct);
+            db.CartItems.RemoveRange(cart.Items);
+            await db.SaveChangesAsync(ct);
+        }
+        return new { status = "success", orderId = result.OrderId, message = "Payment verified successfully" };
+    }
+
+    // --- private helpers ---
 
     private IQueryable<Product> ProductQuery() => db.Products.Include(p => p.Images).Include(p => p.Statuses).AsSplitQuery();
 
@@ -418,6 +592,34 @@ public sealed class EcommerceService(
 
     private async Task<Wishlist> LoadWishlistAsync(int id, CancellationToken ct) =>
         await db.Wishlists.Include(w => w.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images).Include(w => w.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Statuses).FirstAsync(w => w.Id == id, ct);
+
+    private IQueryable<Order> OrderQuery() => db.Orders.Include(o => o.Promo).Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images).Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Statuses).AsSplitQuery();
+
+    private async Task<Cart> LoadCartByUserIdAsync(int userId, CancellationToken ct) =>
+        await GetOrCreateCartAsync(new AuthUser((await db.StoreUsers.FindAsync([userId], ct))!.IdentityUserId, (await db.StoreUsers.FindAsync([userId], ct))!.Email, []), ct);
+
+    private async Task<(decimal Total, int? PromoId)> ApplyPromoAsync(decimal subtotal, int? promoId, string? promoCode, CancellationToken ct)
+    {
+        Promo? promo = null;
+        if (!string.IsNullOrWhiteSpace(promoCode)) promo = await db.Promos.FirstOrDefaultAsync(p => p.Code == promoCode, ct) ?? throw new ApiException($"Promo code \"{promoCode}\" not found", 404);
+        else if (promoId is not null) promo = await FindPromoAsync(promoId.Value, ct);
+        if (promo is null) return (subtotal, null);
+        if (promo.ActiveUntil is not null && promo.ActiveUntil <= DateTimeOffset.UtcNow) throw new ApiException("Promo code has expired", 422);
+        var discount = promo.DiscountType == "percentage" ? subtotal * (promo.DiscountValue / 100m) : promo.DiscountValue;
+        return (Math.Max(0, subtotal - discount), promo.Id);
+    }
+
+    private static OrderDto ToOrderDto(Order o) => new(o.Id, o.UserId, o.TotalAmount, o.Status, o.PromoId, o.Promo is null ? null : new OrderPromoDto(o.Promo.Id, o.Promo.Code, o.Promo.DiscountType, o.Promo.DiscountValue), o.PaymentIntentId, string.IsNullOrWhiteSpace(o.ShippingAddressJson) ? null : JsonSerializer.Deserialize<JsonElement>(o.ShippingAddressJson), o.CreatedAt, o.Items.Select(i => new OrderItemDto(i.Id, ToProductDto(i.Product), i.Quantity, i.PriceAtPurchase)).ToList());
+
+    private static BannerDto ToBannerDto(BannerConfig b) => new(b.Id, b.Title, b.Description, b.ImageUrl, b.Category, b.ButtonText, b.CreatedAt, b.UpdatedAt);
+
+    private static void ValidateRolePermission(string? creatorRole, string requestedRole)
+    {
+        if (requestedRole is not ("admin" or "superadmin")) throw new ApiException("Role must be 'admin' or 'superadmin'", 400);
+        if (creatorRole is null) throw new ApiException("Creator role not found in token", 422);
+        if (creatorRole == "admin" && requestedRole == "superadmin") throw new ApiException("Admins can only create admin users. Superadmin role required to create superadmin users.", 422);
+        if (creatorRole is not ("admin" or "superadmin")) throw new ApiException($"Insufficient permissions to create {requestedRole} user", 422);
+    }
 
     private static ProductDto ToProductDto(Product p) => new(p.Id, p.Name, p.Description, p.BasePrice, p.CountryOfOrigin, p.StockQuantity, p.ManufacturerId, p.Images.OrderByDescending(i => i.IsMain).ThenBy(i => i.SortOrder).ThenBy(i => i.Id).Select(i => new ProductImageDto(i.Id, i.Url, i.IsMain)).ToList(), p.Statuses.Select(s => s.StatusType).Distinct().OrderBy(s => s).ToList());
 
