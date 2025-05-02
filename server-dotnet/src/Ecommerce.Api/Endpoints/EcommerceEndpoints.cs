@@ -19,6 +19,12 @@ public static class EcommerceEndpoints
         app.MapProductEndpoints();
         app.MapManufacturerEndpoints();
         app.MapPromoEndpoints();
+        app.MapCartEndpoints();
+        app.MapOrderEndpoints();
+        app.MapWishlistEndpoints();
+        app.MapBannerEndpoints();
+        app.MapUserEndpoints();
+        app.MapPaymentEndpoints();
 
         return app;
     }
@@ -93,6 +99,71 @@ public static class EcommerceEndpoints
         promos.MapPost("/", async ([FromBody] CreatePromoDto dto, EcommerceService service, CancellationToken ct) => Results.Created("/promos", await service.CreatePromoAsync(dto, ct))).RequireAuthorization("Admin");
         promos.MapPatch("/{id:int}", async (int id, [FromBody] UpdatePromoDto dto, EcommerceService service, CancellationToken ct) => Results.Ok(await service.UpdatePromoAsync(id, dto, ct))).RequireAuthorization("Admin");
         promos.MapDelete("/{id:int}", async (int id, EcommerceService service, CancellationToken ct) => { await service.DeletePromoAsync(id, ct); return Results.NoContent(); }).RequireAuthorization("Admin");
+    }
+
+    private static void MapCartEndpoints(this IEndpointRouteBuilder app)
+    {
+        var carts = app.MapGroup("/carts").RequireAuthorization();
+        carts.MapGet("/", async (HttpContext context, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.GetCartAsync(RequireUser(context, accessor), ct)));
+        carts.MapPost("/items", async (HttpContext context, [FromBody] AddCartItemDto dto, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Created("/carts/items", await service.AddCartItemAsync(RequireUser(context, accessor), dto, ct)));
+        carts.MapPatch("/items/{itemId:int}", async (HttpContext context, int itemId, [FromBody] UpdateCartItemDto dto, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.UpdateCartItemAsync(RequireUser(context, accessor), itemId, dto, ct)));
+        carts.MapDelete("/items/{itemId:int}", async (HttpContext context, int itemId, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.RemoveCartItemAsync(RequireUser(context, accessor), itemId, ct)));
+        carts.MapDelete("/clear", async (HttpContext context, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.ClearCartAsync(RequireUser(context, accessor), ct)));
+    }
+
+    private static void MapOrderEndpoints(this IEndpointRouteBuilder app)
+    {
+        var orders = app.MapGroup("/orders").RequireAuthorization();
+        orders.MapGet("/", async (HttpContext context, HttpRequest request, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.GetOrdersAsync(RequireUser(context, accessor), ParseOrderFilters(request), ct)));
+        orders.MapGet("/{id:int}", async (HttpContext context, int id, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.GetOrderAsync(RequireUser(context, accessor), id, ct)));
+        orders.MapPost("/", async (HttpContext context, [FromBody] CreateOrderDto dto, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Created("/orders", await service.CreateOrderAsync(RequireUser(context, accessor), dto, ct)));
+        orders.MapPatch("/{id:int}", async (HttpContext context, int id, [FromBody] UpdateOrderDto dto, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.UpdateOrderAsync(RequireUser(context, accessor), id, dto, ct)));
+        orders.MapDelete("/{id:int}", async (int id, EcommerceService service, CancellationToken ct) => { await service.DeleteOrderAsync(id, ct); return Results.NoContent(); }).RequireAuthorization("Admin");
+    }
+
+    private static void MapWishlistEndpoints(this IEndpointRouteBuilder app)
+    {
+        var wishlists = app.MapGroup("/wishlists").RequireAuthorization();
+        wishlists.MapGet("/", async (HttpContext context, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.GetWishlistAsync(RequireUser(context, accessor), ct)));
+        wishlists.MapPost("/items", async (HttpContext context, [FromBody] AddWishlistItemDto dto, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.AddWishlistItemAsync(RequireUser(context, accessor), dto, ct)));
+        wishlists.MapDelete("/items/{productId:int}", async (HttpContext context, int productId, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.RemoveWishlistItemAsync(RequireUser(context, accessor), productId, ct)));
+        wishlists.MapDelete("/clear", async (HttpContext context, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.ClearWishlistAsync(RequireUser(context, accessor), ct)));
+    }
+
+    private static void MapBannerEndpoints(this IEndpointRouteBuilder app)
+    {
+        var banner = app.MapGroup("/banner");
+        banner.MapGet("/", async (EcommerceService service, CancellationToken ct) => Results.Ok(await service.GetBannerAsync(ct)));
+        banner.MapPatch("/", async ([FromBody] UpdateBannerDto dto, EcommerceService service, CancellationToken ct) => Results.Ok(await service.UpdateBannerAsync(dto, ct))).RequireAuthorization("Admin");
+    }
+
+    private static void MapUserEndpoints(this IEndpointRouteBuilder app)
+    {
+        var users = app.MapGroup("/users").RequireAuthorization("Admin");
+        users.MapGet("/", async (EcommerceService service, CancellationToken ct) => Results.Ok(await service.GetUsersAsync(ct)));
+        users.MapPost("/", async (HttpContext context, [FromBody] CreateUserDto dto, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Created("/users", await service.CreateUserAsync(RequireUser(context, accessor), dto, ct)));
+        users.MapPatch("/{id:int}/role", async (HttpContext context, int id, [FromBody] UpdateRoleRequest dto, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.UpdateUserRoleAsync(RequireUser(context, accessor), id, dto.Role, ct)));
+    }
+
+    private static void MapPaymentEndpoints(this IEndpointRouteBuilder app)
+    {
+        var payments = app.MapGroup("/payments").RequireAuthorization();
+        payments.MapPost("/checkout-session", async (HttpContext context, [FromBody] CreateCheckoutSessionDto dto, EcommerceService service, ICurrentUserAccessor accessor, IConfiguration config, CancellationToken ct) =>
+        {
+            var frontendUrl = config["FrontendUrl"] ?? config["FRONTEND_URL"] ?? "http://localhost:5173";
+            var currency = config["Stripe:Currency"] ?? config["STRIPE_CURRENCY"] ?? "php";
+            return Results.Created("/payments/checkout-session", await service.CreateCheckoutSessionAsync(RequireUser(context, accessor), dto, frontendUrl, currency, ct));
+        });
+        payments.MapGet("/checkout-session/{sessionId}/verify", async (HttpContext context, string sessionId, EcommerceService service, ICurrentUserAccessor accessor, CancellationToken ct) => Results.Ok(await service.VerifyCheckoutSessionAsync(RequireUser(context, accessor), sessionId, ct)));
+    }
+
+    private static AuthUser RequireUser(HttpContext context, ICurrentUserAccessor accessor) =>
+        accessor.GetCurrentUser(context.User) ?? throw new ApiException("Unauthorized", StatusCodes.Status401Unauthorized);
+
+    private static OrderFilters ParseOrderFilters(HttpRequest request)
+    {
+        var q = request.Query;
+        return new OrderFilters(q["status"], Int(q["user_id"]), q["sort_by"].FirstOrDefault() ?? "created_at", q["order"].FirstOrDefault() ?? "desc", Int(q["page"]) ?? 1, Int(q["limit"]) ?? 20);
     }
 
     private static ProductFilters ParseProductFilters(HttpRequest request)
