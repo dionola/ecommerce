@@ -24,6 +24,11 @@ app.use("/products", productRoutes);
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-app.listen(port, () => {
-  logger.info(`Example app listening on port ${port}`);
-});
+// Only start the server if not in test mode
+if (process.env.NODE_ENV !== "test") {
+  app.listen(port, () => {
+    logger.info(`Example app listening on port ${port}`);
+  });
+}
+
+export { app };
