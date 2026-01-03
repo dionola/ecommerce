@@ -1,0 +1,9 @@
+# Force LF in repo
+* text=auto
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.config.js text eol=lf
+pnpm-lock.yaml text eol=lf

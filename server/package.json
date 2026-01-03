@@ -1,0 +1,51 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx --watch --env-file .env src/index.ts",
+    "start": "node --env-file .env dist/index.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.27.0",
+  "dependencies": {
+    "@tsconfig/node22": "^22.0.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "pg": "^8.16.3",
+    "zod": "^4.3.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.3",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/eslint-plugin": "^1.6.4",
+    "@vitest/ui": "4.0.16",
+    "eslint": "^9.39.2",
+    "eslint-plugin-perfectionist": "^5.2.0",
+    "prettier": "^3.7.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.51.0",
+    "vitest": "^4.0.16"
+  },
+  "imports": {
+    "#*": "./src/*"
+  }
+}

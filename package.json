@@ -1,0 +1,15 @@
+{
+  "name": "e_commerce_store",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"client,server\" -c \"blue,green\" \"pnpm --dir client dev\" \"pnpm --dir server dev\"",
+    "dev:client": "pnpm --dir client dev",
+    "dev:server": "pnpm --dir server dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "packageManager": "pnpm@10.27.0"
+}
+
