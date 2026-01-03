@@ -1,0 +1,73 @@
+import { query } from "../../models/databaseModel";
+import { ProductDto, ProductDtoType } from "../../dtos/productDto";
+import { validateDto } from "../../utils/validateDto";
+import { NotFoundError } from "../../errors/NotFoundError";
+
+/**
+ * Returns the base SELECT query for products with images
+ */
+export function buildProductSelectQuery(): string {
+  return `
+    SELECT 
+      p.id, 
+      p.name, 
+      p.description, 
+      p.base_price, 
+      p.country_of_origin, 
+      p.stock_quantity, 
+      p.manufacturer_id,
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', pi.id,
+            'url', pi.url,
+            'is_main', pi.is_main
+          ) ORDER BY pi.is_main DESC, pi.id
+        ) FILTER (WHERE pi.id IS NOT NULL),
+        '[]'::json
+      ) as images
+    FROM products p
+    LEFT JOIN product_images pi ON p.id = pi.product_id
+  `;
+}
+
+/**
+ * Returns the GROUP BY clause for product queries
+ */
+export function buildProductGroupBy(): string {
+  return `GROUP BY p.id, p.name, p.description, p.base_price, p.country_of_origin, p.stock_quantity, p.manufacturer_id`;
+}
+
+/**
+ * Fetches a product by ID with its images
+ */
+export async function fetchProductWithImages(productId: number): Promise<ProductDtoType> {
+  const selectQuery = buildProductSelectQuery();
+  const groupBy = buildProductGroupBy();
+  
+  const fetchProductQuery = `${selectQuery}
+    WHERE p.id = $1
+    ${groupBy}
+  `;
+
+  const result = await query(fetchProductQuery, [productId]);
+  
+  if (result.rows.length === 0) {
+    throw new NotFoundError(`Product with id ${productId} not found`);
+  }
+
+  return validateDto(ProductDto, result.rows[0], "Failed to validate product data");
+}
+
+/**
+ * Checks if a product exists by ID
+ */
+export async function checkProductExists(productId: number): Promise<void> {
+  const checkQuery = `SELECT id FROM products WHERE id = $1`;
+  const result = await query(checkQuery, [productId]);
+  
+  if (result.rows.length === 0) {
+    throw new NotFoundError(`Product with id ${productId} not found`);
+  }
+}
+

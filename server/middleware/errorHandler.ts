@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ValidationError } from "../errors/ValidationError";
+import { NotFoundError } from "../errors/NotFoundError";
 import { logger } from "../utils/logger";
 
 export function errorHandler(
@@ -15,6 +16,13 @@ export function errorHandler(
     return res.status(error.statusCode).json({
       message: error.message,
       errors: error.validationErrors,
+    });
+  }
+
+  // Handle not found errors with proper status code
+  if (error instanceof NotFoundError) {
+    return res.status(error.statusCode).json({
+      message: error.message,
     });
   }
 

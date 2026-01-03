@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const ProductImageDto = z.object({
+  id: z.number().int().positive(),
+  url: z.string(),
+  is_main: z.boolean(),
+});
+
+export type ProductImageDtoType = z.infer<typeof ProductImageDto>;
+
 export const ProductDto = z.object({
   id: z.number().int().positive(),
   name: z.string().max(255),
@@ -8,6 +16,7 @@ export const ProductDto = z.object({
   country_of_origin: z.string().max(100).nullable(),
   stock_quantity: z.number().int().nonnegative(),
   manufacturer_id: z.number().int().positive().nullable(),
+  images: z.array(ProductImageDto).default([]),
 });
 
 export type ProductDtoType = z.infer<typeof ProductDto>;
@@ -30,4 +39,42 @@ export const GetProductsQueryParamsDto = z.object({
 });
 
 export type GetProductsQueryParamsDtoType = z.infer<typeof GetProductsQueryParamsDto>;
+
+// Create Product DTO
+export const CreateProductDto = z.object({
+  name: z.string().max(255),
+  description: z.string().nullable().optional(),
+  base_price: z.coerce.number().nonnegative(),
+  country_of_origin: z.string().max(100).nullable().optional(),
+  stock_quantity: z.coerce.number().int().nonnegative().default(0),
+  manufacturer_id: z.coerce.number().int().positive().nullable().optional(),
+  images: z.array(z.object({
+    url: z.string(),
+    is_main: z.boolean().default(false),
+  })).optional().default([]),
+});
+
+export type CreateProductDtoType = z.infer<typeof CreateProductDto>;
+
+// Update Product DTO (all fields optional for PATCH)
+export const UpdateProductDto = z.object({
+  name: z.string().max(255).optional(),
+  description: z.string().nullable().optional(),
+  base_price: z.coerce.number().nonnegative().optional(),
+  country_of_origin: z.string().max(100).nullable().optional(),
+  stock_quantity: z.coerce.number().int().nonnegative().optional(),
+  manufacturer_id: z.coerce.number().int().positive().nullable().optional(),
+}).refine(
+  (data) => Object.keys(data).length > 0,
+  { message: "At least one field must be provided for update" }
+);
+
+export type UpdateProductDtoType = z.infer<typeof UpdateProductDto>;
+
+// Product ID param DTO (for update and delete)
+export const ProductIdParamDto = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+export type ProductIdParamDtoType = z.infer<typeof ProductIdParamDto>;
 
