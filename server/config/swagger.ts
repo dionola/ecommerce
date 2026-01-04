@@ -203,6 +203,331 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        Promo: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Promo ID",
+            },
+            code: {
+              type: "string",
+              maxLength: 50,
+              description: "Promo code",
+            },
+            discount_type: {
+              type: "string",
+              enum: ["percentage", "fixed"],
+              description: "Type of discount",
+            },
+            discount_value: {
+              type: "number",
+              minimum: 0,
+              description: "Discount value",
+            },
+            active_until: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+              description: "Expiration date (null means no expiration)",
+            },
+          },
+          required: ["id", "code", "discount_type", "discount_value"],
+        },
+        CreatePromo: {
+          type: "object",
+          properties: {
+            code: {
+              type: "string",
+              maxLength: 50,
+              description: "Promo code",
+            },
+            discount_type: {
+              type: "string",
+              enum: ["percentage", "fixed"],
+              description: "Type of discount",
+            },
+            discount_value: {
+              type: "number",
+              minimum: 0,
+              description: "Discount value",
+            },
+            active_until: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+              description: "Expiration date (null means no expiration)",
+            },
+          },
+          required: ["code", "discount_type", "discount_value"],
+        },
+        UpdatePromo: {
+          type: "object",
+          properties: {
+            code: {
+              type: "string",
+              maxLength: 50,
+              description: "Promo code",
+            },
+            discount_type: {
+              type: "string",
+              enum: ["percentage", "fixed"],
+              description: "Type of discount",
+            },
+            discount_value: {
+              type: "number",
+              minimum: 0,
+              description: "Discount value",
+            },
+            active_until: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+              description: "Expiration date (null means no expiration)",
+            },
+          },
+          description: "At least one field must be provided",
+        },
+        WishlistItem: {
+          type: "object",
+          properties: {
+            product: {
+              $ref: "#/components/schemas/Product",
+            },
+          },
+          required: ["product"],
+        },
+        Wishlist: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Wishlist ID",
+            },
+            user_id: {
+              type: "integer",
+              description: "User ID",
+            },
+            items: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/WishlistItem",
+              },
+              default: [],
+              description: "Wishlist items",
+            },
+          },
+          required: ["id", "user_id", "items"],
+        },
+        AddWishlistItem: {
+          type: "object",
+          properties: {
+            product_id: {
+              type: "integer",
+              minimum: 1,
+              description: "Product ID to add",
+            },
+          },
+          required: ["product_id"],
+        },
+        RemoveWishlistItem: {
+          type: "object",
+          properties: {
+            product_id: {
+              type: "integer",
+              minimum: 1,
+              description: "Product ID to remove",
+            },
+          },
+          required: ["product_id"],
+        },
+        CartItem: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Cart item ID",
+            },
+            product: {
+              $ref: "#/components/schemas/Product",
+            },
+            quantity: {
+              type: "integer",
+              minimum: 1,
+              description: "Item quantity",
+            },
+          },
+          required: ["id", "product", "quantity"],
+        },
+        Cart: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Cart ID",
+            },
+            user_id: {
+              type: "integer",
+              description: "User ID",
+            },
+            updated_at: {
+              type: "string",
+              format: "date-time",
+              description: "Last update timestamp",
+            },
+            items: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/CartItem",
+              },
+              default: [],
+              description: "Cart items",
+            },
+            subtotal: {
+              type: "number",
+              minimum: 0,
+              description: "Subtotal before discounts",
+            },
+            total: {
+              type: "number",
+              minimum: 0,
+              description: "Total amount (same as subtotal for cart, will include promo discount in order)",
+            },
+          },
+          required: ["id", "user_id", "updated_at", "items", "subtotal", "total"],
+        },
+        AddCartItem: {
+          type: "object",
+          properties: {
+            product_id: {
+              type: "integer",
+              minimum: 1,
+              description: "Product ID to add",
+            },
+            quantity: {
+              type: "integer",
+              minimum: 1,
+              default: 1,
+              description: "Quantity to add",
+            },
+          },
+          required: ["product_id"],
+        },
+        UpdateCartItem: {
+          type: "object",
+          properties: {
+            quantity: {
+              type: "integer",
+              minimum: 1,
+              description: "New quantity",
+            },
+          },
+          required: ["quantity"],
+        },
+        OrderItem: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Order item ID",
+            },
+            product: {
+              $ref: "#/components/schemas/Product",
+            },
+            quantity: {
+              type: "integer",
+              minimum: 1,
+              description: "Item quantity",
+            },
+            price_at_purchase: {
+              type: "number",
+              minimum: 0,
+              description: "Product price at time of purchase (snapshot)",
+            },
+          },
+          required: ["id", "product", "quantity", "price_at_purchase"],
+        },
+        Order: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Order ID",
+            },
+            user_id: {
+              type: "integer",
+              description: "User ID",
+            },
+            total_amount: {
+              type: "number",
+              minimum: 0,
+              description: "Total order amount (after discounts)",
+            },
+            status: {
+              type: "string",
+              description: "Order status (e.g., pending, completed, cancelled)",
+            },
+            promo_id: {
+              type: "integer",
+              nullable: true,
+              description: "Applied promo code ID",
+            },
+            stripe_payment_intent_id: {
+              type: "string",
+              nullable: true,
+              description: "Stripe payment intent ID",
+            },
+            shipping_address: {
+              type: "object",
+              nullable: true,
+              description: "Shipping address (JSON object)",
+            },
+            created_at: {
+              type: "string",
+              format: "date-time",
+              description: "Order creation timestamp",
+            },
+            items: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/OrderItem",
+              },
+              default: [],
+              description: "Order items",
+            },
+          },
+          required: ["id", "user_id", "total_amount", "status", "created_at", "items"],
+        },
+        CreateOrder: {
+          type: "object",
+          properties: {
+            shipping_address: {
+              type: "object",
+              description: "Shipping address (JSON object with street, city, state, zip, country, etc.)",
+            },
+            promo_id: {
+              type: "integer",
+              nullable: true,
+              description: "Optional promo code ID to apply",
+            },
+          },
+          required: ["shipping_address"],
+        },
+        UpdateOrder: {
+          type: "object",
+          properties: {
+            status: {
+              type: "string",
+              description: "Order status",
+            },
+            stripe_payment_intent_id: {
+              type: "string",
+              nullable: true,
+              description: "Stripe payment intent ID",
+            },
+          },
+          description: "At least one field must be provided",
+        },
       },
     },
   },
