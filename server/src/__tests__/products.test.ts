@@ -2,16 +2,30 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import { app } from "./setup";
 import * as databaseModel from "../../models/databaseModel";
+import { cognitoVerifier } from "../../config/cognito";
 
 // Mock the database model
 vi.mock("../../models/databaseModel", () => ({
   query: vi.fn(),
 }));
 
+// Mock Cognito verifier
+vi.mock("../../config/cognito", () => ({
+  cognitoVerifier: {
+    verify: vi.fn(),
+  },
+}));
+
 describe("Products API Endpoints", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default mock for admin user (for protected endpoints)
+    vi.mocked(cognitoVerifier.verify).mockResolvedValue({
+      sub: "admin-sub-123",
+      email: "admin@example.com",
+      "cognito:groups": ["admin"],
+    } as any);
   });
 
   describe("GET /products", () => {
@@ -305,6 +319,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .post("/products")
+        .set("Authorization", "Bearer admin-token")
         .send(newProduct);
 
       expect(response.status).toBe(201);
@@ -354,6 +369,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .post("/products")
+        .set("Authorization", "Bearer admin-token")
         .send(newProduct);
 
       expect(response.status).toBe(201);
@@ -369,6 +385,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .post("/products")
+        .set("Authorization", "Bearer admin-token")
         .send(invalidProduct);
 
       expect(response.status).toBe(400);
@@ -384,6 +401,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .post("/products")
+        .set("Authorization", "Bearer admin-token")
         .send(invalidProduct);
 
       expect(response.status).toBe(400);
@@ -442,6 +460,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .post("/products")
+        .set("Authorization", "Bearer admin-token")
         .send(newProduct);
 
       expect(response.status).toBe(201);
@@ -496,6 +515,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .patch("/products/1")
+        .set("Authorization", "Bearer admin-token")
         .send(updateData);
 
       expect(response.status).toBe(200);
@@ -550,6 +570,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .patch("/products/1")
+        .set("Authorization", "Bearer admin-token")
         .send(updateData);
 
       expect(response.status).toBe(200);
@@ -574,6 +595,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .patch("/products/999")
+        .set("Authorization", "Bearer admin-token")
         .send(updateData);
 
       expect(response.status).toBe(404);
@@ -584,6 +606,7 @@ describe("Products API Endpoints", () => {
     it("should return 400 for invalid product ID", async () => {
       const response = await request(app)
         .patch("/products/invalid")
+        .set("Authorization", "Bearer admin-token")
         .send({ name: "Test" });
 
       expect(response.status).toBe(400);
@@ -601,6 +624,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .patch("/products/1")
+        .set("Authorization", "Bearer admin-token")
         .send({});
 
       expect(response.status).toBe(400);
@@ -615,6 +639,7 @@ describe("Products API Endpoints", () => {
 
       const response = await request(app)
         .patch("/products/1")
+        .set("Authorization", "Bearer admin-token")
         .send(invalidData);
 
       expect(response.status).toBe(400);
@@ -641,7 +666,9 @@ describe("Products API Endpoints", () => {
         fields: [],
       });
 
-      const response = await request(app).delete("/products/1");
+      const response = await request(app)
+        .delete("/products/1")
+        .set("Authorization", "Bearer admin-token");
 
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
@@ -657,7 +684,9 @@ describe("Products API Endpoints", () => {
         fields: [],
       });
 
-      const response = await request(app).delete("/products/999");
+      const response = await request(app)
+        .delete("/products/999")
+        .set("Authorization", "Bearer admin-token");
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty("message");
@@ -665,13 +694,17 @@ describe("Products API Endpoints", () => {
     });
 
     it("should return 400 for invalid product ID", async () => {
-      const response = await request(app).delete("/products/invalid");
+      const response = await request(app)
+        .delete("/products/invalid")
+        .set("Authorization", "Bearer admin-token");
 
       expect(response.status).toBe(400);
     });
 
     it("should return 400 for negative product ID", async () => {
-      const response = await request(app).delete("/products/-1");
+      const response = await request(app)
+        .delete("/products/-1")
+        .set("Authorization", "Bearer admin-token");
 
       expect(response.status).toBe(400);
     });

@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import productRoutes from "../routes/productRoutes";
+import devAuthRoutes from "../routes/devAuthRoutes";
 import { errorHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
 import { swaggerSpec } from "../config/swagger";
@@ -20,6 +21,12 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use("/products", productRoutes);
+
+// Development-only routes (returns 404 in production)
+if (process.env.NODE_ENV !== "production") {
+  app.use("/dev/auth", devAuthRoutes);
+  logger.info("Development auth endpoints enabled at /dev/auth");
+}
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

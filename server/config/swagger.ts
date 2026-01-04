@@ -17,6 +17,14 @@ const options: swaggerJsdoc.Options = {
     ],
     paths: swaggerPaths,
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "AWS Cognito JWT token. Format: Bearer {token}",
+        },
+      },
       schemas: {
         ProductImage: {
           type: "object",

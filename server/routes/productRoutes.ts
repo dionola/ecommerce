@@ -1,6 +1,8 @@
 import { Router } from "express";
 import productController from "../controllers/productController";
 import { validateRequestQuery, validateRequestBody, validateRequestParams } from "../middleware/validate";
+import { authenticate, optionalAuthenticate } from "../middleware/auth";
+import { authorize } from "../middleware/authorize";
 import { 
   GetProductsQueryParamsDto, 
   CreateProductDto,
@@ -12,18 +14,23 @@ const router = Router();
 
 router.get(
   "/",
+  optionalAuthenticate,
   validateRequestQuery(GetProductsQueryParamsDto),
   productController.getProducts
 );
 
 router.post(
   "/",
+  authenticate,
+  authorize("admin", "superadmin"),
   validateRequestBody(CreateProductDto),
   productController.createProduct
 );
 
 router.patch(
   "/:id",
+  authenticate,
+  authorize("admin", "superadmin"),
   validateRequestParams(ProductIdParamDto),
   validateRequestBody(UpdateProductDto),
   productController.updateProduct
@@ -31,6 +38,8 @@ router.patch(
 
 router.delete(
   "/:id",
+  authenticate,
+  authorize("admin", "superadmin"),
   validateRequestParams(ProductIdParamDto),
   productController.deleteProduct
 );

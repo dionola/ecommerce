@@ -8,8 +8,9 @@ export const productsIdDefinition = {
     patch: {
       operationId: "updateProduct",
       summary: "Update a product",
-      description: "Partially update a product by ID. Only provided fields will be updated. At least one field must be provided.",
+      description: "Partially update a product by ID. Only provided fields will be updated. At least one field must be provided. Requires admin or superadmin role.",
       tags: ["Products"],
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: "path",
@@ -63,6 +64,29 @@ export const productsIdDefinition = {
             },
           },
         },
+        401: {
+          description: "Unauthorized - Missing or invalid authentication token",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+              example: {
+                message: "Unauthorized - Missing or invalid authorization header",
+              },
+            },
+          },
+        },
+        403: {
+          description: "Forbidden - Insufficient permissions (admin or superadmin required)",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+              example: {
+                message: "Forbidden - Insufficient permissions",
+                requiredRoles: ["admin", "superadmin"],
+              },
+            },
+          },
+        },
         404: {
           description: "Product not found",
           content: {
@@ -77,8 +101,9 @@ export const productsIdDefinition = {
     delete: {
       operationId: "deleteProduct",
       summary: "Delete a product",
-      description: "Delete a product by ID. This will also cascade delete all associated product images.",
+      description: "Delete a product by ID. This will also cascade delete all associated product images. Requires admin or superadmin role.",
       tags: ["Products"],
+      security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: "path",
@@ -94,6 +119,29 @@ export const productsIdDefinition = {
           content: {
             "application/json": {
               schema: { type: "object" },
+            },
+          },
+        },
+        401: {
+          description: "Unauthorized - Missing or invalid authentication token",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+              example: {
+                message: "Unauthorized - Missing or invalid authorization header",
+              },
+            },
+          },
+        },
+        403: {
+          description: "Forbidden - Insufficient permissions (admin or superadmin required)",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+              example: {
+                message: "Forbidden - Insufficient permissions",
+                requiredRoles: ["admin", "superadmin"],
+              },
             },
           },
         },

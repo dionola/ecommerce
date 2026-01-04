@@ -113,8 +113,9 @@ export const productsDefinition = {
     post: {
       operationId: "createProduct",
       summary: "Create a new product",
-      description: "Create a new product with optional images. The product will be assigned a unique ID upon creation.",
+      description: "Create a new product with optional images. The product will be assigned a unique ID upon creation. Requires admin or superadmin role.",
       tags: ["Products"],
+      security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
@@ -162,6 +163,29 @@ export const productsDefinition = {
               example: {
                 message: "Invalid body schema",
                 errors: [{ path: ["name"], message: "Required" }],
+              },
+            },
+          },
+        },
+        401: {
+          description: "Unauthorized - Missing or invalid authentication token",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+              example: {
+                message: "Unauthorized - Missing or invalid authorization header",
+              },
+            },
+          },
+        },
+        403: {
+          description: "Forbidden - Insufficient permissions (admin or superadmin required)",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+              example: {
+                message: "Forbidden - Insufficient permissions",
+                requiredRoles: ["admin", "superadmin"],
               },
             },
           },

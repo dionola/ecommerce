@@ -15,14 +15,17 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "get-token": "tsx scripts/get-token.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.27.0",
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.962.0",
     "@tsconfig/node22": "^22.0.5",
+    "aws-jwt-verify": "^5.1.1",
     "axios": "^1.13.2",
     "csv-parse": "^6.1.0",
     "dotenv": "^17.2.3",
