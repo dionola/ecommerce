@@ -1,0 +1,183 @@
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Link, useSearchParams } from "react-router-dom"
+import { ProductFilters } from "./ProductFilters"
+import { useCart } from "../contexts/CartContext"
+import { getProducts } from "../services/products"
+import { mapProductDtoToProduct } from "../types/product"
+import { ProductStatusBadge } from "./ProductStatusBadge"
+import type { ProductFilters as FilterType } from "./ProductFilters"
+
+export function ProductGrid() {
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<FilterType>({})
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [searchParams] = useSearchParams()
+  const { addItem } = useCart()
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  // Read category from URL params
+  useEffect(() => {
+    const category = searchParams.get('category')
+    if (category) {
+      setFilters((prev) => ({ ...prev, category }))
+    }
+  }, [searchParams])
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1)
+    setProducts([])
+  }, [filters])
+
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (page === 1) {
+        setLoading(true)
+      } else {
+        setIsLoadingMore(true)
+      }
+      setError(null)
+      try {
+        const response = await getProducts({ ...filters, page, limit: 20 })
+        const mappedProducts = response.products.map(mapProductDtoToProduct)
+        
+        if (page === 1) {
+          setProducts(mappedProducts)
+        } else {
+          setProducts((prev) => [...prev, ...mappedProducts])
+        }
+        
+        setHasMore(response.hasMore)
+      } catch (err: any) {
+        setError(err.message || 'Failed to load products')
+      } finally {
+        setLoading(false)
+        setIsLoadingMore(false)
+      }
+    }
+
+    fetchProducts()
+  }, [filters, page])
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !loading) {
+          setPage((prev) => prev + 1)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    const currentSentinel = sentinelRef.current
+    if (currentSentinel) {
+      observer.observe(currentSentinel)
+    }
+
+    return () => {
+      if (currentSentinel) {
+        observer.unobserve(currentSentinel)
+      }
+    }
+  }, [hasMore, isLoadingMore, loading])
+
+  const handleAddToCart = async (product: any, quantity: number = 1) => {
+    try {
+      await addItem(product.id, quantity)
+    } catch (err: any) {
+      alert(err.message || 'Failed to add to cart')
+    }
+  }
+
+  if (loading) {
+    return (
+      <section className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
+        <div className="text-center text-muted-foreground">Loading products...</div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
+        <div className="text-center text-destructive">{error}</div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
+      <ProductFilters onFilterChange={(newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }))} />
+
+      <div className="flex justify-between items-end mb-12">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground block mb-2">
+            New Arrivals
+          </span>
+          <h2 className="text-4xl font-bold tracking-tighter uppercase">Selected Items</h2>
+        </div>
+        <div className="hidden md:block">
+          <p className="text-sm font-medium uppercase tracking-widest underline underline-offset-8 cursor-pointer hover:text-muted-foreground transition-colors">
+            View All Products
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+        {products.map((product) => (
+          <div key={product.id} className="group block">
+            <Link to={`/product/${product.id}`} className="block">
+              <div className="aspect-[3/4] overflow-hidden bg-secondary mb-6 relative">
+                <img
+                  src={product.mainImage || "/placeholder.svg"}
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                />
+                <ProductStatusBadge statuses={product.statuses || []} />
+              </div>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground uppercase tracking-widest mt-1">
+                    Reference No. {product.id}
+                  </p>
+                </div>
+                <p className="font-bold text-lg tracking-tighter">${product.price.toFixed(2)}</p>
+              </div>
+            </Link>
+            {product.inStock && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleAddToCart(product, 1)
+                }}
+                className="mt-4 w-full bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+              >
+                Add to Cart
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Infinite scroll sentinel and loading indicator */}
+      <div ref={sentinelRef} className="h-10 flex items-center justify-center mt-12">
+        {isLoadingMore && (
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading more products...</p>
+        )}
+        {!hasMore && products.length > 0 && !isLoadingMore && (
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No more products</p>
+        )}
+      </div>
+    </section>
+  )
+}
+

@@ -15,6 +15,12 @@ async function getProducts(req: Request, res: Response) {
     res.json(result);
 }
 
+async function getProduct(req: Request, res: Response) {
+    const params = res.locals.params as ProductIdParamDtoType;
+    const result = await productService.getProduct(params.id);
+    res.json(result);
+}
+
 async function createProduct(req: Request, res: Response) {
     const body = res.locals.body as CreateProductDtoType;
     const result = await productService.createProduct(body);
@@ -34,4 +40,9 @@ async function deleteProduct(req: Request, res: Response) {
     res.status(204).send();
 }
 
-export default { getProducts, createProduct, updateProduct, deleteProduct };
+async function getCategories(req: Request, res: Response) {
+    const categories = await productService.getCategories();
+    res.json(categories);
+}
+
+export default { getProducts, getProduct, createProduct, updateProduct, deleteProduct, getCategories };

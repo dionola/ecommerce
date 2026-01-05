@@ -30,6 +30,7 @@ const createTables = async () => {
         country_of_origin VARCHAR(100),
         stock_quantity INTEGER DEFAULT 0,
         manufacturer_id INTEGER REFERENCES manufacturers(id) ON DELETE SET NULL,
+        category VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

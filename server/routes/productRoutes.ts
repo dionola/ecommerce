@@ -19,6 +19,19 @@ router.get(
   productController.getProducts
 );
 
+router.get(
+  "/categories",
+  optionalAuthenticate,
+  productController.getCategories
+);
+
+router.get(
+  "/:id",
+  optionalAuthenticate,
+  validateRequestParams(ProductIdParamDto),
+  productController.getProduct
+);
+
 router.post(
   "/",
   authenticate,

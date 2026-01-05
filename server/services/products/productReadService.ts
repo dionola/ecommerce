@@ -56,6 +56,23 @@ function buildFilterConditions(filters: GetProductsQueryParamsDtoType): FilterCo
     }
   }
 
+  // Status filter
+  if (filters.status) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM product_statuses ps 
+      WHERE ps.product_id = p.id AND ps.status_type = $${paramIndex}
+    )`);
+    params.push(filters.status);
+    paramIndex++;
+  }
+
+  // Category filter
+  if (filters.category) {
+    conditions.push(`p.category = $${paramIndex}`);
+    params.push(filters.category);
+    paramIndex++;
+  }
+
   return { conditions, params, paramIndex };
 }
 
@@ -93,8 +110,20 @@ export async function getProducts(filters: GetProductsQueryParamsDtoType): Promi
   const { conditions, params, paramIndex } = buildFilterConditions(filters);
   const whereClause = buildWhereClause(conditions);
   const orderByClause = buildOrderByClause(filters);
+  
+  // First, get total count (use a copy of filter params, before adding pagination)
+  const countQuery = `
+    SELECT COUNT(DISTINCT p.id) as total
+    FROM products p
+    ${whereClause}
+  `;
+  const countResult = await query(countQuery, [...params]);
+  const total = parseInt(countResult.rows[0].total, 10);
+  
+  // Now build pagination params for the products query
   const { params: finalParams, limitParamIndex, offsetParamIndex } = buildPaginationParams(filters, params, paramIndex);
 
+  // Then get paginated products
   const productsQuery = `
     SELECT 
       p.id, 
@@ -113,17 +142,73 @@ export async function getProducts(filters: GetProductsQueryParamsDtoType): Promi
           ) ORDER BY pi.is_main DESC, pi.id
         ) FILTER (WHERE pi.id IS NOT NULL),
         '[]'::json
-      ) as images
+      ) as images,
+      COALESCE(
+        json_agg(
+          ps.status_type ORDER BY ps.status_type
+        ) FILTER (WHERE ps.status_type IS NOT NULL),
+        '[]'::json
+      ) as statuses
     FROM products p
     LEFT JOIN product_images pi ON p.id = pi.product_id
+    LEFT JOIN product_statuses ps ON p.id = ps.product_id
     ${whereClause}
-    GROUP BY p.id, p.name, p.description, p.base_price, p.country_of_origin, p.stock_quantity, p.manufacturer_id
+    GROUP BY p.id, p.name, p.description, p.base_price, p.country_of_origin, p.stock_quantity, p.manufacturer_id, p.created_at
     ${orderByClause}
     LIMIT $${limitParamIndex} OFFSET $${offsetParamIndex}
   `;
 
   const result = await query(productsQuery, finalParams);
   
-  return validateDto(GetProductsResponseDto, result.rows, "Failed to validate products data");
+  // Parse JSON fields from PostgreSQL
+  const products = result.rows.map((row: any) => {
+    // Parse images if it's a string
+    let images = row.images;
+    if (typeof images === 'string') {
+      try {
+        images = JSON.parse(images);
+      } catch {
+        images = [];
+      }
+    }
+    if (!Array.isArray(images)) {
+      images = [];
+    }
+
+    // Parse statuses if it's a string
+    let statuses = row.statuses;
+    if (typeof statuses === 'string') {
+      try {
+        statuses = JSON.parse(statuses);
+      } catch {
+        statuses = [];
+      }
+    }
+    if (!Array.isArray(statuses)) {
+      statuses = [];
+    }
+    // Deduplicate statuses
+    statuses = [...new Set(statuses)];
+
+    return {
+      ...row,
+      images,
+      statuses,
+    };
+  });
+  
+  const limit = filters.limit || 20;
+  const page = filters.page || 1;
+  const hasMore = (page * limit) < total;
+
+  const response = {
+    products,
+    total,
+    page,
+    limit,
+    hasMore,
+  };
+  
+  return validateDto(GetProductsResponseDto, response, "Failed to validate products data");
 }
 

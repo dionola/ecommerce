@@ -42,3 +42,5 @@ async function deletePromo(req: Request, res: Response) {
 
 export default { getPromos, getPromoById, createPromo, updatePromo, deletePromo };
 
+
+

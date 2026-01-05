@@ -17,11 +17,18 @@ export const ProductDto = z.object({
   stock_quantity: z.number().int().nonnegative(),
   manufacturer_id: z.number().int().positive().nullable(),
   images: z.array(ProductImageDto).default([]),
+  statuses: z.array(z.string()).default([]),
 });
 
 export type ProductDtoType = z.infer<typeof ProductDto>;
 
-export const GetProductsResponseDto = z.array(ProductDto);
+export const GetProductsResponseDto = z.object({
+  products: z.array(ProductDto),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  hasMore: z.boolean(),
+});
 
 export type GetProductsResponseDtoType = z.infer<typeof GetProductsResponseDto>;
 
@@ -32,6 +39,8 @@ export const GetProductsQueryParamsDto = z.object({
   manufacturer_id: z.coerce.number().int().positive().optional(),
   country_of_origin: z.string().optional(),
   in_stock: z.coerce.boolean().optional(),
+  status: z.string().optional(),
+  category: z.string().optional(),
   sort_by: z.enum(["name", "price", "created_at"]).optional().default("created_at"),
   order: z.enum(["asc", "desc"]).optional().default("desc"),
   page: z.coerce.number().int().positive().optional().default(1),

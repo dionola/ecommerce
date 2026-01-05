@@ -43,6 +43,8 @@ export type GetOrdersQueryParamsDtoType = z.infer<typeof GetOrdersQueryParamsDto
 export const CreateOrderDto = z.object({
   shipping_address: z.record(z.any()),
   promo_id: z.coerce.number().int().positive().nullable().optional(),
+  create_payment_intent: z.boolean().optional().default(false),
+  payment_processor: z.enum(["stripe", "local1", "local2"]).optional(),
 });
 
 export type CreateOrderDtoType = z.infer<typeof CreateOrderDto>;

@@ -29,3 +29,5 @@ export const RemoveWishlistItemDto = z.object({
 
 export type RemoveWishlistItemDtoType = z.infer<typeof RemoveWishlistItemDto>;
 
+
+

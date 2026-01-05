@@ -1,11 +1,21 @@
-function App() {
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import { CartProvider } from './contexts/CartContext'
+import Home from './pages/Home'
+import ProductDetail from './pages/ProductDetail'
 
+function App() {
   return (
-    <div className='w-screen h-screen bg-black'>
-      <div className='w-full h-full flex items-center justify-center'>
-        <h1 className='text-white text-4xl font-bold'>Hello World</h1>
-      </div>
-    </div>
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
   )
 }
 

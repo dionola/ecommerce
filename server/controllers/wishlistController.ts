@@ -48,3 +48,5 @@ async function clearWishlist(req: AuthenticatedRequest, res: Response) {
 
 export default { getWishlist, addWishlistItem, removeWishlistItem, clearWishlist };
 
+
+

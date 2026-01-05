@@ -56,3 +56,5 @@ export const PromoIdParamDto = z.object({
 
 export type PromoIdParamDtoType = z.infer<typeof PromoIdParamDto>;
 
+
+

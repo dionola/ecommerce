@@ -8,3 +8,5 @@ export interface WishlistItem {
   product_id: number;
 }
 
+
+

@@ -60,3 +60,5 @@ async function clearCart(req: AuthenticatedRequest, res: Response) {
 
 export default { getCart, addCartItem, updateCartItem, removeCartItem, clearCart };
 
+
+

@@ -7,6 +7,7 @@ import { validateCartStock, applyPromoDiscount } from "./orderHelpers";
 import { ValidationError } from "../../errors/ValidationError";
 import { fetchOrderById } from "./orderHelpers";
 import { CartItemDtoType } from "../../dtos/cartDto";
+import { paymentService } from "../payments/paymentService";
 
 export async function createOrder(cognitoSub: string, data: CreateOrderDtoType): Promise<OrderDtoType> {
   const userId = await getUserIdByCognitoSub(cognitoSub);
@@ -40,6 +41,40 @@ export async function createOrder(cognitoSub: string, data: CreateOrderDtoType):
   ]);
   
   const orderId = orderResult.rows[0].id;
+  
+  // Create payment intent if requested
+  let paymentIntentId: string | null = null;
+  if (data.create_payment_intent) {
+    try {
+      const amountInCents = Math.round(total * 100);
+      const paymentIntent = await paymentService.createPaymentIntent(
+        {
+          amount: amountInCents,
+          currency: "usd", // TODO: Make this configurable
+          orderId,
+          metadata: {
+            user_id: userId.toString(),
+          },
+        },
+        data.payment_processor
+      );
+      
+      paymentIntentId = paymentIntent.paymentIntentId;
+      
+      // Update order with payment intent ID
+      const updateOrderQuery = `
+        UPDATE orders
+        SET stripe_payment_intent_id = $1
+        WHERE id = $2
+      `;
+      await query(updateOrderQuery, [paymentIntentId, orderId]);
+    } catch (error: any) {
+      // Log error but don't fail order creation
+      // Payment intent can be created later
+      const { logger } = await import("../../utils/logger");
+      logger.error("Failed to create payment intent during order creation", error);
+    }
+  }
   
   // Insert order items with price snapshots
   const itemValues = cart.items.map((item: CartItemDtoType, index: number) => {

@@ -6,3 +6,5 @@ export interface Promo {
   active_until: Date | null;
 }
 
+
+

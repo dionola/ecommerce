@@ -25,9 +25,16 @@ export function buildProductSelectQuery(): string {
           ) ORDER BY pi.is_main DESC, pi.id
         ) FILTER (WHERE pi.id IS NOT NULL),
         '[]'::json
-      ) as images
+      ) as images,
+      COALESCE(
+        json_agg(
+          ps.status_type ORDER BY ps.status_type
+        ) FILTER (WHERE ps.status_type IS NOT NULL),
+        '[]'::json
+      ) as statuses
     FROM products p
     LEFT JOIN product_images pi ON p.id = pi.product_id
+    LEFT JOIN product_statuses ps ON p.id = ps.product_id
   `;
 }
 
@@ -35,7 +42,7 @@ export function buildProductSelectQuery(): string {
  * Returns the GROUP BY clause for product queries
  */
 export function buildProductGroupBy(): string {
-  return `GROUP BY p.id, p.name, p.description, p.base_price, p.country_of_origin, p.stock_quantity, p.manufacturer_id`;
+  return `GROUP BY p.id, p.name, p.description, p.base_price, p.country_of_origin, p.stock_quantity, p.manufacturer_id, p.created_at`;
 }
 
 /**
@@ -56,7 +63,42 @@ export async function fetchProductWithImages(productId: number): Promise<Product
     throw new NotFoundError(`Product with id ${productId} not found`);
   }
 
-  return validateDto(ProductDto, result.rows[0], "Failed to validate product data");
+  const row = result.rows[0];
+  
+  // Parse JSON fields from PostgreSQL
+  let images = row.images;
+  if (typeof images === 'string') {
+    try {
+      images = JSON.parse(images);
+    } catch {
+      images = [];
+    }
+  }
+  if (!Array.isArray(images)) {
+    images = [];
+  }
+
+  let statuses = row.statuses;
+  if (typeof statuses === 'string') {
+    try {
+      statuses = JSON.parse(statuses);
+    } catch {
+      statuses = [];
+    }
+  }
+  if (!Array.isArray(statuses)) {
+    statuses = [];
+  }
+  // Deduplicate statuses
+  statuses = [...new Set(statuses)];
+
+  const product = {
+    ...row,
+    images,
+    statuses,
+  };
+
+  return validateDto(ProductDto, product, "Failed to validate product data");
 }
 
 /**
