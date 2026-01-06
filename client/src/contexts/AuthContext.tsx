@@ -1,13 +1,20 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { signUp, signIn, confirmSignUp, signOut, getCurrentSession, resendConfirmationCode } from '../services/cognitoAuth';
-import type { AuthResult } from '../services/cognitoAuth';
+import {
+  signUp as authSignUp,
+  signIn as authSignIn,
+  signOut as authSignOut,
+  confirmSignUp as authConfirmSignUp,
+  resendConfirmationCode as authResendConfirmationCode,
+  getAuthToken,
+  getUserInfo,
+} from '../services/auth';
 
 interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
-  user: { email: string } | null;
+  user: { email: string; groups?: string[] } | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name?: string) => Promise<void>;
   confirmSignUp: (email: string, code: string) => Promise<void>;
@@ -19,71 +26,103 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; groups?: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for existing session on mount
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const session = await getCurrentSession();
-        if (session) {
-          setToken(session.idToken);
-          // Extract email from token (basic parsing)
-          try {
-            const payload = JSON.parse(atob(session.idToken.split('.')[1]));
-            setUser({ email: payload.email || payload['cognito:username'] });
-          } catch {
-            // If we can't parse, that's okay
-          }
-        }
-      } catch {
-        // No valid session
+  /**
+   * Refresh authentication state from Amplify session
+   */
+  const refreshAuthState = async (): Promise<void> => {
+    try {
+      const currentToken = await getAuthToken();
+      const userInfo = await getUserInfo();
+
+      if (currentToken && userInfo) {
+        setToken(currentToken);
+        setUser(userInfo);
+      } else {
         setToken(null);
         setUser(null);
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      // Log error for debugging (only in development)
+      if (import.meta.env.DEV) {
+        console.error('Failed to refresh auth state:', error);
+      }
+      setToken(null);
+      setUser(null);
+    }
+  };
+
+  // Check for existing session on mount and set up listener
+  useEffect(() => {
+    const checkSession = async () => {
+      await refreshAuthState();
+      setLoading(false);
     };
 
     checkSession();
+
+    // Set up interval to periodically check auth state (in case of token refresh)
+    const interval = setInterval(() => {
+      refreshAuthState().catch(() => {
+        // Silently handle errors - user might have signed out
+      });
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
   }, []);
 
-  const handleSignIn = async (email: string, password: string) => {
-    const result = await signIn({ email, password });
-    setToken(result.idToken);
-    setUser({ email });
-    // Store tokens in localStorage for persistence
-    localStorage.setItem('authToken', result.idToken);
-    if (result.refreshToken) {
-      localStorage.setItem('refreshToken', result.refreshToken);
-    }
+  /**
+   * Sign in handler
+   */
+  const handleSignIn = async (email: string, password: string): Promise<void> => {
+    await authSignIn({ email, password });
+    // Small delay to ensure Amplify has stored the session
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Refresh auth state after successful sign in
+    await refreshAuthState();
   };
 
-  const handleSignUp = async (email: string, password: string, name?: string) => {
-    await signUp({ email, password, name });
+  /**
+   * Sign up handler
+   */
+  const handleSignUp = async (email: string, password: string, name?: string): Promise<void> => {
+    await authSignUp({ email, password, name });
+    // Don't refresh auth state here - user needs to confirm email first
   };
 
-  const handleConfirmSignUp = async (email: string, code: string) => {
-    await confirmSignUp(email, code);
+  /**
+   * Confirm sign up handler
+   */
+  const handleConfirmSignUp = async (email: string, code: string): Promise<void> => {
+    await authConfirmSignUp(email, code);
+    // After confirmation, user can sign in
   };
 
-  const handleSignOut = async () => {
+  /**
+   * Sign out handler
+   */
+  const handleSignOut = async (): Promise<void> => {
     try {
-      await signOut();
-    } catch {
-      // Ignore errors - we'll clear local state anyway
+      await authSignOut();
+    } catch (error) {
+      // Log error but continue with clearing state
+      if (import.meta.env.DEV) {
+        console.error('Sign out error:', error);
+      }
     } finally {
-      // Even if signOut fails, clear local state
+      // Always clear local state, even if sign out fails
       setToken(null);
       setUser(null);
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
     }
   };
 
-  const handleResendConfirmationCode = async (email: string) => {
-    await resendConfirmationCode(email);
+  /**
+   * Resend confirmation code handler
+   */
+  const handleResendConfirmationCode = async (email: string): Promise<void> => {
+    await authResendConfirmationCode(email);
   };
 
   return (

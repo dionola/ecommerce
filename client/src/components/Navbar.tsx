@@ -1,61 +1,36 @@
-import { Link, useNavigate } from "react-router-dom"
-import { ShoppingCart, Menu, User, ChevronDown, X } from "lucide-react"
+import { Link } from "react-router-dom"
+import { ShoppingCart, Menu, User, X, LayoutDashboard, ShoppingBag, Heart, Settings, Package, Tag, Building2, Users, HelpCircle, Info, Mail, Truck, RotateCcw } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { CartSheet } from "./CartSheet"
 import { AuthModal } from "./AuthModal"
 import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
-import { getCategories } from "../services/categories"
 
 export function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
-  const [categories, setCategories] = useState<string[]>([])
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { cartCount } = useCart()
-  const { isAuthenticated, signOut } = useAuth()
-  const navigate = useNavigate()
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setIsCategoriesLoading(true)
-      try {
-        const cats = await getCategories()
-        setCategories(cats)
-      } catch (err) {
-        console.error('Failed to load categories:', err)
-      } finally {
-        setIsCategoriesLoading(false)
-      }
-    }
-    fetchCategories()
-  }, [])
+  const { isAuthenticated, user, signOut } = useAuth()
+  const userDropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false)
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setIsUserDropdownOpen(false)
       }
     }
 
-    if (isDropdownOpen) {
+    if (isUserDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isDropdownOpen])
-
-  const handleCategoryClick = (category: string) => {
-    navigate(`/products?category=${encodeURIComponent(category)}`)
-    setIsDropdownOpen(false)
-    setIsMobileMenuOpen(false)
-  }
+  }, [isUserDropdownOpen])
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -68,44 +43,143 @@ export function Navbar() {
             <Link to="/" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
               Collection
             </Link>
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="hover:text-foreground transition-colors underline-offset-4 hover:underline flex items-center gap-1"
-              >
-                Categories
-                <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {isDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 bg-background border border-border shadow-lg min-w-[200px] z-50">
-                  {isCategoriesLoading ? (
-                    <div className="p-4 text-xs text-muted-foreground">Loading...</div>
-                  ) : categories.length === 0 ? (
-                    <div className="p-4 text-xs text-muted-foreground">No categories available</div>
-                  ) : (
-                    <div className="py-2">
-                      {categories.map((category) => (
-                        <button
-                          key={category}
-                          onClick={() => handleCategoryClick(category)}
-                          className="w-full text-left px-4 py-2 text-xs hover:bg-secondary transition-colors"
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <Link to="/about" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
+              About
+            </Link>
+            <Link to="/shipping" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
+              Shipping
+            </Link>
+            <Link to="/returns" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
+              Returns
+            </Link>
+            <Link to="/contact" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
+              Contact
+            </Link>
           </div>
         </div>
 
         <div className="flex items-center gap-6">
           {isAuthenticated ? (
-            <button onClick={signOut} className="p-2 hover:bg-secondary transition-colors rounded-full">
-              <User className="w-5 h-5" />
-            </button>
+            <div className="relative" ref={userDropdownRef}>
+              <button 
+                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)} 
+                className="p-2 hover:bg-secondary transition-colors rounded-full"
+              >
+                <User className="w-5 h-5" />
+              </button>
+              {isUserDropdownOpen && (
+                <div className="absolute top-full right-0 mt-2 bg-background border border-border shadow-lg min-w-[240px] z-50 rounded-md">
+                  <div className="py-2">
+                    {user && (
+                      <div className="px-4 py-2 border-b border-border">
+                        <div className="text-sm font-medium">{user.email}</div>
+                        {user.groups && user.groups.length > 0 && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {user.groups.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Admin Menu Items */}
+                    {(user?.groups?.includes('admin') || user?.groups?.includes('superadmin')) && (
+                      <>
+                        <Link
+                          to="/admin"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          Admin Dashboard
+                        </Link>
+                        <div className="px-4 py-1 text-xs text-muted-foreground uppercase tracking-wider">
+                          Admin
+                        </div>
+                        <Link
+                          to="/admin/products"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                        >
+                          <Package className="w-4 h-4" />
+                          Products
+                        </Link>
+                        <Link
+                          to="/admin/orders"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                        >
+                          <ShoppingBag className="w-4 h-4" />
+                          Orders
+                        </Link>
+                        <Link
+                          to="/admin/promos"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                        >
+                          <Tag className="w-4 h-4" />
+                          Promos
+                        </Link>
+                        <Link
+                          to="/admin/manufacturers"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                          className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                        >
+                          <Building2 className="w-4 h-4" />
+                          Manufacturers
+                        </Link>
+                        {(user?.groups?.includes('superadmin') || user?.groups?.includes('admin')) && (
+                          <Link
+                            to="/admin/users"
+                            onClick={() => setIsUserDropdownOpen(false)}
+                            className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                          >
+                            <Users className="w-4 h-4" />
+                            Users
+                          </Link>
+                        )}
+                        <div className="border-t border-border my-1"></div>
+                      </>
+                    )}
+                    
+                    {/* Regular User Menu Items */}
+                    <Link
+                      to="/orders"
+                      onClick={() => setIsUserDropdownOpen(false)}
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      Order History
+                    </Link>
+                    <Link
+                      to="/wishlist"
+                      onClick={() => setIsUserDropdownOpen(false)}
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Wishlist
+                    </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => setIsUserDropdownOpen(false)}
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </Link>
+                    <div className="border-t border-border my-1"></div>
+                    <button
+                      onClick={async () => {
+                        await signOut()
+                        setIsUserDropdownOpen(false)
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <button onClick={() => setIsAuthOpen(true)} className="p-2 hover:bg-secondary transition-colors rounded-full">
               <User className="w-5 h-5" />
@@ -141,28 +215,79 @@ export function Navbar() {
             >
               Collection
             </Link>
-            <div>
-              <div className="text-sm font-medium uppercase tracking-widest text-muted-foreground mb-2">
-                Categories
-              </div>
-              {isCategoriesLoading ? (
-                <div className="text-xs text-muted-foreground">Loading...</div>
-              ) : categories.length === 0 ? (
-                <div className="text-xs text-muted-foreground">No categories available</div>
-              ) : (
-                <div className="space-y-1">
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => handleCategoryClick(category)}
-                      className="block w-full text-left text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
-                    >
-                      {category}
-                    </button>
-                  ))}
+            <Link 
+              to="/about" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            >
+              About
+            </Link>
+            <Link 
+              to="/shipping" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Shipping
+            </Link>
+            <Link 
+              to="/returns" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Returns
+            </Link>
+            <Link 
+              to="/contact" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Contact
+            </Link>
+            {isAuthenticated && (
+              <>
+                <div className="border-t border-border pt-4 mt-4">
+                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+                    Account
+                  </div>
+                  {(user?.groups?.includes('admin') || user?.groups?.includes('superadmin')) && (
+                    <>
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 block text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Admin Dashboard
+                      </Link>
+                    </>
+                  )}
+                  <Link
+                    to="/orders"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 block text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Order History
+                  </Link>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 block text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                  >
+                    <Heart className="w-4 h-4" />
+                    Wishlist
+                  </Link>
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 block text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </Link>
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}

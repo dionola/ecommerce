@@ -2,9 +2,13 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { ProductFilters } from "./ProductFilters"
 import { useCart } from "../contexts/CartContext"
+import { useAuth } from "../contexts/AuthContext"
 import { getProducts } from "../services/products"
 import { mapProductDtoToProduct } from "../types/product"
 import { ProductStatusBadge } from "./ProductStatusBadge"
+import { addToWishlist, removeFromWishlist, getWishlist } from "../services/wishlists"
+import { Heart } from "lucide-react"
+import { toast } from "./ui/toaster"
 import type { ProductFilters as FilterType } from "./ProductFilters"
 
 export function ProductGrid() {
@@ -17,13 +21,22 @@ export function ProductGrid() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [searchParams] = useSearchParams()
   const { addItem } = useCart()
+  const { isAuthenticated } = useAuth()
+  const [wishlistProductIds, setWishlistProductIds] = useState<Set<number>>(new Set())
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const productGridRef = useRef<HTMLDivElement>(null)
 
-  // Read category from URL params
+  // Read category from URL params and scroll to grid
   useEffect(() => {
     const category = searchParams.get('category')
     if (category) {
       setFilters((prev) => ({ ...prev, category }))
+      // Scroll to product grid when category is set
+      setTimeout(() => {
+        if (productGridRef.current) {
+          productGridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
     }
   }, [searchParams])
 
@@ -87,11 +100,79 @@ export function ProductGrid() {
     }
   }, [hasMore, isLoadingMore, loading])
 
+  // Load wishlist on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadWishlist()
+    }
+  }, [isAuthenticated])
+
+  const loadWishlist = async () => {
+    try {
+      const wishlist = await getWishlist()
+      const productIds = new Set(wishlist.items.map(item => item.product.id))
+      setWishlistProductIds(productIds)
+    } catch (err) {
+      // Silently fail - user might not have wishlist yet
+    }
+  }
+
   const handleAddToCart = async (product: any, quantity: number = 1) => {
     try {
       await addItem(product.id, quantity)
+      toast({
+        title: "Added to cart",
+        description: `${product.name} has been added to your cart`,
+        variant: "success",
+      })
     } catch (err: any) {
-      alert(err.message || 'Failed to add to cart')
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to add to cart',
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleToggleWishlist = async (e: React.MouseEvent, productId: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: 'Please sign in to add items to your wishlist',
+        variant: "default",
+      })
+      return
+    }
+
+    try {
+      if (wishlistProductIds.has(productId)) {
+        await removeFromWishlist(productId)
+        setWishlistProductIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(productId)
+          return newSet
+        })
+        toast({
+          title: "Removed from wishlist",
+          variant: "success",
+        })
+      } else {
+        await addToWishlist(productId)
+        setWishlistProductIds(prev => new Set(prev).add(productId))
+        toast({
+          title: "Added to wishlist",
+          variant: "success",
+        })
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to update wishlist',
+        variant: "destructive",
+      })
     }
   }
 
@@ -112,8 +193,11 @@ export function ProductGrid() {
   }
 
   return (
-    <section className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
-      <ProductFilters onFilterChange={(newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }))} />
+    <section ref={productGridRef} className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
+      <ProductFilters 
+        onFilterChange={(newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }))}
+        initialCategory={filters.category}
+      />
 
       <div className="flex justify-between items-end mb-12">
         <div>
@@ -133,13 +217,22 @@ export function ProductGrid() {
         {products.map((product) => (
           <div key={product.id} className="group block">
             <Link to={`/product/${product.id}`} className="block">
-              <div className="aspect-[3/4] overflow-hidden bg-secondary mb-6 relative">
+              <div className="aspect-[3/4] overflow-hidden bg-secondary mb-6 relative group/image">
                 <img
                   src={product.mainImage || "/placeholder.svg"}
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-out"
                 />
                 <ProductStatusBadge statuses={product.statuses || []} />
+                {isAuthenticated && (
+                  <button
+                    onClick={(e) => handleToggleWishlist(e, product.id)}
+                    className="absolute top-4 right-4 p-2 bg-background/80 backdrop-blur-sm hover:bg-background transition-colors opacity-0 group-hover/image:opacity-100"
+                    aria-label={wishlistProductIds.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    <Heart className={`w-5 h-5 ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                  </button>
+                )}
               </div>
               <div className="flex justify-between items-start">
                 <div>

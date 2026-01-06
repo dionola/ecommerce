@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { cognitoVerifier } from "../config/cognito";
 import { logger } from "../utils/logger";
 
+/**
+ * Extended Express Request interface with authenticated user information
+ */
 export interface AuthenticatedRequest extends Request {
   user?: {
     sub: string;
@@ -13,8 +16,18 @@ export interface AuthenticatedRequest extends Request {
 
 /**
  * Middleware to authenticate requests using AWS Cognito JWT tokens
- * Extracts and verifies the Authorization Bearer token
- * Requires authentication - returns 401 if token is missing or invalid
+ * 
+ * Extracts the Authorization Bearer token from the request header,
+ * verifies it against Cognito's public keys, and attaches user information
+ * to the request object.
+ * 
+ * Returns 401 if:
+ * - Authorization header is missing or invalid
+ * - Token is invalid or expired
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ * @param next - Express next function
  */
 export async function authenticate(
   req: AuthenticatedRequest,
@@ -36,9 +49,8 @@ export async function authenticate(
     try {
       const payload = await cognitoVerifier.verify(token);
       
-      // Attach user information to request
+      // Extract and attach user information to request
       req.user = {
-        ...payload,
         sub: payload.sub as string,
         email: payload.email as string,
         "cognito:groups": payload["cognito:groups"] as string[] | undefined,
@@ -63,8 +75,15 @@ export async function authenticate(
 
 /**
  * Optional authentication middleware that allows guest access
- * If a valid token is provided, user info is attached to the request
- * If no token or invalid token, request continues without user info (guest access)
+ * 
+ * If a valid token is provided, user info is attached to the request.
+ * If no token or invalid token, request continues without user info (guest access).
+ * 
+ * Useful for endpoints that work for both authenticated and unauthenticated users.
+ * 
+ * @param req - Express request object
+ * @param res - Express response object
+ * @param next - Express next function
  */
 export async function optionalAuthenticate(
   req: AuthenticatedRequest,
@@ -87,7 +106,6 @@ export async function optionalAuthenticate(
       
       // Attach user information to request if token is valid
       req.user = {
-        ...payload,
         sub: payload.sub as string,
         email: payload.email as string,
         "cognito:groups": payload["cognito:groups"] as string[] | undefined,

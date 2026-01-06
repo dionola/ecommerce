@@ -15,8 +15,7 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage",
-    "get-token": "tsx scripts/get-token.ts"
+    "coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",

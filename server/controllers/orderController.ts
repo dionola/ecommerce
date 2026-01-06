@@ -18,9 +18,9 @@ async function getOrders(req: AuthenticatedRequest, res: Response) {
     
     const query = res.locals.query as GetOrdersQueryParamsDtoType;
     
-    // Get user ID from database
-    const { getUserIdByCognitoSub } = await import("../services/wishlists/wishlistHelpers");
-    const userId = await getUserIdByCognitoSub(req.user.sub);
+    // Get or create user ID in database
+    const { getOrCreateUser } = await import("../services/users/userService");
+    const userId = await getOrCreateUser(req.user.sub, req.user.email);
     
     // Check if user is admin (can see all orders)
     const isAdmin = req.user["cognito:groups"]?.includes("admin") || req.user["cognito:groups"]?.includes("superadmin");
@@ -41,9 +41,9 @@ async function getOrderById(req: AuthenticatedRequest, res: Response) {
     
     const params = res.locals.params as OrderIdParamDtoType;
     
-    // Get user ID from database
-    const { getUserIdByCognitoSub } = await import("../services/wishlists/wishlistHelpers");
-    const userId = await getUserIdByCognitoSub(req.user.sub);
+    // Get or create user ID in database
+    const { getOrCreateUser } = await import("../services/users/userService");
+    const userId = await getOrCreateUser(req.user.sub, req.user.email);
     
     // Check if user is admin (can see any order)
     const isAdmin = req.user["cognito:groups"]?.includes("admin") || req.user["cognito:groups"]?.includes("superadmin");
@@ -53,13 +53,26 @@ async function getOrderById(req: AuthenticatedRequest, res: Response) {
 }
 
 async function createOrder(req: AuthenticatedRequest, res: Response) {
-    if (!req.user?.sub) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
+    try {
+        if (!req.user?.sub || !req.user?.email) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+        const body = res.locals.body as CreateOrderDtoType;
+        const result = await orderService.createOrder(req.user.sub, req.user.email, body);
+        res.status(201).json(result);
+    } catch (error: any) {
+        // Log the error with full details
+        const { logger } = await import("../utils/logger");
+        logger.error("Error in createOrder controller:", {
+            message: error?.message,
+            stack: error?.stack,
+            error: error,
+            body: req.body,
+            user: req.user?.sub,
+        });
+        throw error; // Re-throw to let error handler handle it
     }
-    const body = res.locals.body as CreateOrderDtoType;
-    const result = await orderService.createOrder(req.user.sub, body);
-    res.status(201).json(result);
 }
 
 async function updateOrder(req: AuthenticatedRequest, res: Response) {
@@ -71,9 +84,9 @@ async function updateOrder(req: AuthenticatedRequest, res: Response) {
     const params = res.locals.params as OrderIdParamDtoType;
     const body = res.locals.body as UpdateOrderDtoType;
     
-    // Get user ID from database
-    const { getUserIdByCognitoSub } = await import("../services/wishlists/wishlistHelpers");
-    const userId = await getUserIdByCognitoSub(req.user.sub);
+    // Get or create user ID in database
+    const { getOrCreateUser } = await import("../services/users/userService");
+    const userId = await getOrCreateUser(req.user.sub, req.user.email);
     
     // Check if user is admin (can update any order)
     const isAdmin = req.user["cognito:groups"]?.includes("admin") || req.user["cognito:groups"]?.includes("superadmin");
@@ -88,11 +101,14 @@ async function deleteOrder(req: AuthenticatedRequest, res: Response) {
         return;
     }
     const params = res.locals.params as OrderIdParamDtoType;
+    
+    // Admin-only: Only pending orders can be deleted
     await orderService.deleteOrder(params.id);
     res.status(204).send();
 }
 
 export default { getOrders, getOrderById, createOrder, updateOrder, deleteOrder };
+
 
 
 

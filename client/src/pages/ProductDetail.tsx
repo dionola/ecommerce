@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
-import { Minus, Plus, ArrowLeft } from "lucide-react"
+import { Minus, Plus, ArrowLeft, Heart } from "lucide-react"
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import {
@@ -16,6 +16,9 @@ import { cn } from "../lib/utils"
 import { getProduct } from "../services/products"
 import { mapProductDtoToProduct } from "../types/product"
 import { useCart } from "../contexts/CartContext"
+import { useAuth } from "../contexts/AuthContext"
+import { addToWishlist, removeFromWishlist, getWishlist } from "../services/wishlists"
+import { toast } from "../components/ui/toaster"
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>()
@@ -26,7 +29,9 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isInWishlist, setIsInWishlist] = useState(false)
   const { addItem } = useCart()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -38,6 +43,16 @@ export default function ProductDetail() {
         const productDto = await getProduct(Number(id))
         const mappedProduct = mapProductDtoToProduct(productDto)
         setProduct(mappedProduct)
+        
+        // Check if product is in wishlist
+        if (isAuthenticated) {
+          try {
+            const wishlist = await getWishlist()
+            setIsInWishlist(wishlist.items.some(item => item.product.id === mappedProduct.id))
+          } catch {
+            // Silently fail
+          }
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to load product')
       } finally {
@@ -46,7 +61,7 @@ export default function ProductDetail() {
     }
 
     fetchProduct()
-  }, [id])
+  }, [id, isAuthenticated])
 
   useEffect(() => {
     if (!api) return
@@ -68,9 +83,52 @@ export default function ProductDetail() {
     
     try {
       await addItem(product.id, quantity)
-      alert(`Added ${quantity} ${product.name} to cart`)
+      toast({
+        title: "Added to cart",
+        description: `${quantity} ${product.name} has been added to your cart`,
+        variant: "success",
+      })
     } catch (err: any) {
-      alert(err.message || 'Failed to add to cart')
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to add to cart',
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleToggleWishlist = async () => {
+    if (!product || !isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: 'Please sign in to add items to your wishlist',
+        variant: "default",
+      })
+      return
+    }
+
+    try {
+      if (isInWishlist) {
+        await removeFromWishlist(product.id)
+        setIsInWishlist(false)
+        toast({
+          title: "Removed from wishlist",
+          variant: "success",
+        })
+      } else {
+        await addToWishlist(product.id)
+        setIsInWishlist(true)
+        toast({
+          title: "Added to wishlist",
+          variant: "success",
+        })
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to update wishlist',
+        variant: "destructive",
+      })
     }
   }
 
@@ -166,7 +224,18 @@ export default function ProductDetail() {
                 </span>
               </div>
 
-              <h1 className="text-6xl font-bold uppercase tracking-tighter mb-6 leading-[0.9]">{product.name}</h1>
+              <div className="flex items-start justify-between mb-6">
+                <h1 className="text-6xl font-bold uppercase tracking-tighter leading-[0.9] flex-1">{product.name}</h1>
+                {isAuthenticated && (
+                  <button
+                    onClick={handleToggleWishlist}
+                    className="p-3 hover:bg-secondary transition-colors ml-4"
+                    aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+                  </button>
+                )}
+              </div>
 
               <p className="text-3xl font-bold tracking-tighter mb-12">${product.price.toFixed(2)}</p>
 

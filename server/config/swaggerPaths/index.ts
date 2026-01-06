@@ -10,7 +10,9 @@ import { promosIdDefinition } from "./promosId";
 import { wishlistsDefinition } from "./wishlists";
 import { cartsDefinition } from "./carts";
 import { ordersDefinition } from "./orders";
-import { devAuthDefinition } from "./devAuth";
+import { usersDefinition } from "./users";
+import { manufacturersDefinition } from "./manufacturers";
+import { testAuthDefinition } from "./testAuth";
 
 export const swaggerPaths = {
   ...productsDefinition,
@@ -20,6 +22,9 @@ export const swaggerPaths = {
   ...wishlistsDefinition,
   ...cartsDefinition,
   ...ordersDefinition,
-  ...(process.env.NODE_ENV !== "production" ? devAuthDefinition : {}),
+  ...usersDefinition,
+  ...manufacturersDefinition,
+  // Development-only endpoints
+  ...(process.env.NODE_ENV !== "production" ? testAuthDefinition : {}),
 };
 

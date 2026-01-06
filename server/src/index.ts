@@ -5,7 +5,13 @@ import swaggerUi from "swagger-ui-express";
 import productRoutes from "../routes/productRoutes";
 import paymentRoutes from "../routes/paymentRoutes";
 import cartRoutes from "../routes/cartRoutes";
-import devAuthRoutes from "../routes/devAuthRoutes";
+import orderRoutes from "../routes/orderRoutes";
+import promoRoutes from "../routes/promoRoutes";
+import manufacturerRoutes from "../routes/manufacturerRoutes";
+import wishlistRoutes from "../routes/wishlistRoutes";
+import userRoutes from "../routes/userRoutes";
+import bannerRoutes from "../routes/bannerRoutes";
+import testAuthRoutes from "../routes/testAuthRoutes";
 import { errorHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
 import { swaggerSpec } from "../config/swagger";
@@ -34,11 +40,17 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/products", productRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/carts", cartRoutes);
+app.use("/orders", orderRoutes);
+app.use("/promos", promoRoutes);
+app.use("/manufacturers", manufacturerRoutes);
+app.use("/wishlists", wishlistRoutes);
+app.use("/users", userRoutes);
+app.use("/banner", bannerRoutes);
 
-// Development-only routes (returns 404 in production)
+// Development-only routes (for testing in Swagger UI)
 if (process.env.NODE_ENV !== "production") {
-  app.use("/dev/auth", devAuthRoutes);
-  logger.info("Development auth endpoints enabled at /dev/auth");
+  app.use("/", testAuthRoutes);
+  logger.info("Test auth endpoints enabled at /test-token");
 }
 
 // Error handling middleware (must be last)

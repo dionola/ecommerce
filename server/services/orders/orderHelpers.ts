@@ -3,27 +3,68 @@ import { OrderDto, OrderDtoType } from "../../dtos/orderDto";
 import { validateDto } from "../../utils/validateDto";
 import { NotFoundError } from "../../errors/NotFoundError";
 import { ValidationError } from "../../errors/ValidationError";
-import { getUserIdByCognitoSub } from "../wishlists/wishlistHelpers";
+import { getUserIdByCognitoSub } from "../users/userService";
 import { fetchCartByUserId } from "../carts/cartHelpers";
 import { CartDtoType } from "../../dtos/cartDto";
 
 /**
  * Validates and applies promo code to calculate discount
+ * Also handles test promo codes that set order status
  */
-export async function applyPromoDiscount(subtotal: number, promoId: number | null): Promise<{ discount: number; total: number; promoId: number | null }> {
-  if (!promoId) {
+export async function applyPromoDiscount(
+  subtotal: number, 
+  promoId: number | null,
+  promoCode: string | null | undefined
+): Promise<{ discount: number; total: number; promoId: number | null; testStatus?: string }> {
+  // Handle test promo codes (e.g., TESTDELIVERED, TESTCOMPLETED)
+  if (promoCode && promoCode.toUpperCase().startsWith('TEST')) {
+    const statusSuffix = promoCode.toUpperCase().replace('TEST', '');
+    const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
+    
+    if (validStatuses.includes(statusSuffix)) {
+      // Test promo code - set total to 0 and return status to set
+      return { 
+        discount: subtotal, 
+        total: 0, 
+        promoId: null,
+        testStatus: statusSuffix.toLowerCase()
+      };
+    } else {
+      // Invalid test promo code suffix - throw error
+      throw new ValidationError(`Invalid test promo code. Valid suffixes are: ${validStatuses.join(', ')}`);
+    }
+  }
+
+  // Look up promo by code if provided
+  let finalPromoId = promoId;
+  if (promoCode && !promoId) {
+    const promoByCodeQuery = `
+      SELECT id, discount_type, discount_value, active_until
+      FROM promos
+      WHERE code = $1
+    `;
+    const promoByCodeResult = await query(promoByCodeQuery, [promoCode.toUpperCase()]);
+    
+    if (promoByCodeResult.rows.length === 0) {
+      throw new NotFoundError(`Promo code "${promoCode}" not found`);
+    }
+    
+    finalPromoId = promoByCodeResult.rows[0].id;
+  }
+
+  if (!finalPromoId) {
     return { discount: 0, total: subtotal, promoId: null };
   }
   
   const promoQuery = `
-    SELECT discount_type, discount_value, active_until
+    SELECT id, discount_type, discount_value, active_until
     FROM promos
     WHERE id = $1
   `;
-  const promoResult = await query(promoQuery, [promoId]);
+  const promoResult = await query(promoQuery, [finalPromoId]);
   
   if (promoResult.rows.length === 0) {
-    throw new NotFoundError(`Promo with id ${promoId} not found`);
+    throw new NotFoundError(`Promo with id ${finalPromoId} not found`);
   }
   
   const promo = promoResult.rows[0];
@@ -48,7 +89,7 @@ export async function applyPromoDiscount(subtotal: number, promoId: number | nul
   
   const total = subtotal - discount;
   
-  return { discount, total, promoId };
+  return { discount, total, promoId: finalPromoId };
 }
 
 /**
@@ -109,13 +150,17 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
               'stock_quantity', p.stock_quantity,
               'manufacturer_id', p.manufacturer_id,
               'images', COALESCE(
-                json_agg(
-                  json_build_object(
-                    'id', pi.id,
-                    'url', pi.url,
-                    'is_main', pi.is_main
-                  ) ORDER BY pi.is_main DESC, pi.id
-                ) FILTER (WHERE pi.id IS NOT NULL),
+                (
+                  SELECT json_agg(
+                    json_build_object(
+                      'id', pi2.id,
+                      'url', pi2.url,
+                      'is_main', pi2.is_main
+                    ) ORDER BY pi2.is_main DESC, pi2.id
+                  )
+                  FROM product_images pi2
+                  WHERE pi2.product_id = p.id
+                ),
                 '[]'::json
               )
             ),
@@ -128,7 +173,6 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
     FROM orders o
     LEFT JOIN order_items oi ON o.id = oi.order_id
     LEFT JOIN products p ON oi.product_id = p.id
-    LEFT JOIN product_images pi ON p.id = pi.product_id
     ${whereClause}
     GROUP BY o.id, o.user_id, o.total_amount, o.status, o.promo_id, o.stripe_payment_intent_id, o.shipping_address, o.created_at
   `;
@@ -174,6 +218,7 @@ export async function checkOrderExists(orderId: number): Promise<void> {
     throw new NotFoundError(`Order with id ${orderId} not found`);
   }
 }
+
 
 
 

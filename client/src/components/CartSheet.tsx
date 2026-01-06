@@ -3,7 +3,10 @@ import { Button } from "./ui/button"
 import { ScrollArea } from "./ui/scroll-area"
 import { X, Minus, Plus, ShoppingBag } from "lucide-react"
 import { useCart } from "../contexts/CartContext"
+import { useAuth } from "../contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
 import { mapProductDtoToProduct } from "../types/product"
+import { toast } from "./ui/toaster"
 import type { CartDtoType, GuestCartType } from "../types/cart"
 
 export function CartSheet({
@@ -14,6 +17,21 @@ export function CartSheet({
   onClose: () => void
 }) {
   const { cart, updateItem, removeItem } = useCart()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: 'Please sign in to checkout',
+        variant: "default",
+      })
+      return
+    }
+    onClose()
+    navigate('/checkout')
+  }
 
   if (!cart) {
     return (
@@ -61,7 +79,11 @@ export function CartSheet({
       const identifier = isGuestCart ? item.product_id : item.id
       await updateItem(identifier, newQuantity)
     } catch (err: any) {
-      alert(err.message || 'Failed to update quantity')
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to update quantity',
+        variant: "destructive",
+      })
     }
   }
 
@@ -69,7 +91,11 @@ export function CartSheet({
     try {
       await removeItem(itemId)
     } catch (err: any) {
-      alert(err.message || 'Failed to remove item')
+      toast({
+        title: "Error",
+        description: err.message || 'Failed to remove item',
+        variant: "destructive",
+      })
     }
   }
 
@@ -167,7 +193,10 @@ export function CartSheet({
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
               </div>
-              <Button className="w-full h-14 rounded-none bg-black text-white text-xs font-bold uppercase tracking-[0.3em] hover:bg-zinc-800">
+              <Button 
+                onClick={handleCheckout}
+                className="w-full h-14 rounded-none bg-black text-white text-xs font-bold uppercase tracking-[0.3em] hover:bg-zinc-800"
+              >
                 Checkout
               </Button>
             </div>

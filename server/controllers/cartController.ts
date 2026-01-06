@@ -10,21 +10,21 @@ import {
 } from "../dtos/cartDto";
 
 async function getCart(req: AuthenticatedRequest, res: Response) {
-    if (!req.user?.sub) {
+    if (!req.user?.sub || !req.user?.email) {
         res.status(401).json({ message: "Unauthorized" });
         return;
     }
-    const result = await cartService.getCart(req.user.sub);
+    const result = await cartService.getCart(req.user.sub, req.user.email);
     res.json(result);
 }
 
 async function addCartItem(req: AuthenticatedRequest, res: Response) {
-    if (!req.user?.sub) {
+    if (!req.user?.sub || !req.user?.email) {
         res.status(401).json({ message: "Unauthorized" });
         return;
     }
     const body = res.locals.body as AddCartItemDtoType;
-    const result = await cartService.addCartItem(req.user.sub, body);
+    const result = await cartService.addCartItem(req.user.sub, req.user.email, body);
     res.status(201).json(result);
 }
 
@@ -45,7 +45,7 @@ async function removeCartItem(req: AuthenticatedRequest, res: Response) {
         return;
     }
     const params = res.locals.params as CartItemIdParamDtoType;
-    const result = await cartService.removeCartItem(req.user.sub, params.itemId);
+    const result = await cartService.removeCartItem(req.user.sub, params.itemId, req.user.email);
     res.json(result);
 }
 
@@ -54,11 +54,12 @@ async function clearCart(req: AuthenticatedRequest, res: Response) {
         res.status(401).json({ message: "Unauthorized" });
         return;
     }
-    const result = await cartService.clearCart(req.user.sub);
+    const result = await cartService.clearCart(req.user.sub, req.user.email);
     res.json(result);
 }
 
 export default { getCart, addCartItem, updateCartItem, removeCartItem, clearCart };
+
 
 
 

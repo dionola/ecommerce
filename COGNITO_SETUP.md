@@ -1,6 +1,6 @@
-# Complete Authentication Setup Guide
+# AWS Cognito Setup Guide
 
-This guide will help you set up AWS Cognito authentication for both the frontend and backend of your e-commerce application.
+This guide will help you set up AWS Cognito authentication for your e-commerce application.
 
 ## Prerequisites
 
@@ -40,27 +40,17 @@ This guide will help you set up AWS Cognito authentication for both the frontend
 3. Click **"Create app client"**
 4. **Configure app client**:
    - App client name: `ecommerce-client`
-   - **IMPORTANT**: Uncheck "Generate client secret" (we're using public client)
+   - **IMPORTANT**: **UNCHECK** "Generate client secret" (we're using public client for frontend)
    - Click "Next"
 5. **Configure app client authentication**:
    - Authentication flows: Enable **"ALLOW_USER_PASSWORD_AUTH"**
-   - OAuth 2.0 grant types: Enable "Authorization code grant" and "Implicit grant" (optional)
+   - OAuth 2.0 grant types: Enable "Authorization code grant" (optional)
    - OAuth 2.0 scopes: Select `email`, `openid`, `profile`
    - Click "Next"
 6. **Review and create**:
    - Click "Create app client"
 
-## Step 3: Configure User Pool Attributes
-
-1. Go to **Sign-up experience** tab
-2. Under **Required attributes**, ensure:
-   - ✅ Email
-   - ✅ Name (optional, but recommended)
-3. Under **User pool properties**, note:
-   - **User Pool ID** (format: `us-east-1_XXXXXXXXX`)
-   - **Region** (e.g., `us-east-1`)
-
-## Step 4: Set Up User Groups (Optional but Recommended)
+## Step 3: Create User Groups
 
 For role-based access control (admin, superadmin):
 
@@ -72,42 +62,34 @@ For role-based access control (admin, superadmin):
    - Click "Create group"
 4. Repeat for `superadmin` group if needed
 
-## Step 5: Configure Frontend Environment Variables
+**Note**: All users are implicitly in the `user` role. Only assign users to `admin` or `superadmin` groups if they need elevated permissions.
 
-Create a `.env` file in the `client` directory:
+## Step 4: Configure Frontend Environment Variables
+
+Create or update a `.env` file in the `client` directory:
 
 ```env
-VITE_AWS_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-VITE_AWS_COGNITO_CLIENT_ID=your-client-id-here
-VITE_AWS_REGION=us-east-1
+VITE_AWS_COGNITO_USER_POOL_ID=your-user-pool-id
+VITE_AWS_COGNITO_CLIENT_ID=your-client-id
+VITE_AWS_REGION=your-region
 ```
 
 **To get these values:**
 - **User Pool ID**: User Pool → General settings → User pool ID
 - **Client ID**: App integration → App clients → Client ID
-- **Region**: Your AWS region (e.g., `us-east-1`)
+- **Region**: Your AWS region (e.g., `us-east-1`, `ap-southeast-1`)
 
-## Step 6: Configure Backend Environment Variables
+## Step 5: Configure Backend Environment Variables
 
-Create a `.env` file in the `server` directory:
+Create or update a `.env` file in the `server` directory:
 
 ```env
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=your_db_name
-
 # AWS Cognito Configuration
-AWS_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-AWS_COGNITO_CLIENT_ID=your-client-id-here
-AWS_COGNITO_CLIENT_SECRET=  # Leave empty if using public client
-AWS_REGION=us-east-1
-
-# Server Configuration
-PORT=3000
-NODE_ENV=development
+AWS_COGNITO_USER_POOL_ID=your-user-pool-id
+AWS_COGNITO_CLIENT_ID=your-client-id
+AWS_REGION=your-region
+# Optional: Only needed for admin operations (creating users server-side)
+AWS_COGNITO_CLIENT_SECRET=
 ```
 
 **Important Notes:**
@@ -115,20 +97,7 @@ NODE_ENV=development
 - If you created a public client (no secret), leave `AWS_COGNITO_CLIENT_SECRET` empty
 - The backend uses these to verify JWT tokens from the frontend
 
-## Step 7: Configure App Client Callback URLs (For OAuth)
-
-If you're using OAuth flows:
-
-1. Go to **App integration** → **App clients**
-2. Click on your app client
-3. Under **Hosted UI settings**:
-   - **Allowed callback URLs**: Add your frontend URL
-     - Development: `http://localhost:5173`
-     - Production: `https://yourdomain.com`
-   - **Allowed sign-out URLs**: Add the same URLs
-4. Click **Save changes**
-
-## Step 8: Test Authentication
+## Step 6: Test Authentication
 
 ### Frontend Testing
 
@@ -156,7 +125,7 @@ If you're using OAuth flows:
 2. The backend will automatically verify JWT tokens from authenticated requests
 3. Test protected endpoints with the token from your frontend
 
-## Step 9: Create Test Users (Optional)
+## Step 7: Create Test Users (Optional)
 
 You can create test users directly in Cognito:
 
@@ -207,14 +176,8 @@ You can create test users directly in Cognito:
 2. **Use different User Pools** for development and production
 3. **Enable MFA** in production
 4. **Use HTTPS** in production
-5. **Rotate secrets** regularly
+5. **Rotate secrets** regularly (if using client secret)
 6. **Monitor Cognito logs** in CloudWatch
-
-## Additional Resources
-
-- [AWS Cognito Documentation](https://docs.aws.amazon.com/cognito/)
-- [AWS Amplify Auth Documentation](https://docs.amplify.aws/react/build-a-backend/auth/)
-- [JWT Verification Best Practices](https://auth0.com/blog/a-look-at-the-latest-draft-for-jwt-bcp/)
 
 ## Quick Reference
 
@@ -242,6 +205,7 @@ AWS_REGION=us-east-1
 
 ### User Groups
 
+- `user` - Default role for all users (implicit)
 - `admin` - Administrator access
 - `superadmin` - Super administrator access
 

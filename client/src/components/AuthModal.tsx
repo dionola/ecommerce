@@ -30,6 +30,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       setTimeout(() => {
         onClose()
         resetForm()
+        window.location.reload()
       }, 1000)
     } catch (err: any) {
       let errorMessage = 'Authentication failed'
@@ -99,6 +100,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       setTimeout(() => {
         setMode('login')
         setConfirmationCode("")
+        window.location.reload()
       }, 2000)
     } catch (err: any) {
       let errorMessage = 'Confirmation failed'

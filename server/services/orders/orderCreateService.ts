@@ -1,6 +1,6 @@
 import { query } from "../../models/databaseModel";
 import { OrderDtoType, CreateOrderDtoType } from "../../dtos/orderDto";
-import { getUserIdByCognitoSub } from "../wishlists/wishlistHelpers";
+import { getOrCreateUser } from "../users/userService";
 import { fetchCartByUserId } from "../carts/cartHelpers";
 import { clearCart } from "../carts/cartService";
 import { validateCartStock, applyPromoDiscount } from "./orderHelpers";
@@ -9,8 +9,8 @@ import { fetchOrderById } from "./orderHelpers";
 import { CartItemDtoType } from "../../dtos/cartDto";
 import { paymentService } from "../payments/paymentService";
 
-export async function createOrder(cognitoSub: string, data: CreateOrderDtoType): Promise<OrderDtoType> {
-  const userId = await getUserIdByCognitoSub(cognitoSub);
+export async function createOrder(cognitoSub: string, email: string, data: CreateOrderDtoType): Promise<OrderDtoType> {
+  const userId = await getOrCreateUser(cognitoSub, email);
   
   // Get user's cart
   const cart = await fetchCartByUserId(userId);
@@ -22,8 +22,20 @@ export async function createOrder(cognitoSub: string, data: CreateOrderDtoType):
   // Validate stock for all items
   await validateCartStock(cart);
   
-  // Calculate totals with promo
-  const { total, promoId } = await applyPromoDiscount(cart.subtotal, data.promo_id ?? null);
+  // Calculate totals with promo (supports both promo_id and promo_code)
+  const promoResult = await applyPromoDiscount(
+    cart.subtotal, 
+    data.promo_id ?? null,
+    data.promo_code ?? null
+  );
+  
+  const { total, promoId, testStatus } = promoResult;
+  
+  // Determine initial order status (use test status if provided, otherwise "pending")
+  const initialStatus = testStatus || "pending";
+  
+  // Check if this is a test promo code (total is 0)
+  const isTestPromo = testStatus !== undefined;
   
   // Start transaction by creating order
   const insertOrderQuery = `
@@ -35,16 +47,16 @@ export async function createOrder(cognitoSub: string, data: CreateOrderDtoType):
   const orderResult = await query(insertOrderQuery, [
     userId,
     total,
-    "pending",
+    initialStatus,
     promoId,
     JSON.stringify(data.shipping_address),
   ]);
   
   const orderId = orderResult.rows[0].id;
   
-  // Create payment intent if requested
+  // Create payment intent if requested AND not a test promo (test promos have $0 total)
   let paymentIntentId: string | null = null;
-  if (data.create_payment_intent) {
+  if (data.create_payment_intent && !isTestPromo && total > 0) {
     try {
       const amountInCents = Math.round(total * 100);
       const paymentIntent = await paymentService.createPaymentIntent(
@@ -77,6 +89,10 @@ export async function createOrder(cognitoSub: string, data: CreateOrderDtoType):
   }
   
   // Insert order items with price snapshots
+  if (cart.items.length === 0) {
+    throw new ValidationError("Cannot create order from empty cart");
+  }
+  
   const itemValues = cart.items.map((item: CartItemDtoType, index: number) => {
     const baseIndex = index * 4;
     return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4})`;
@@ -89,10 +105,25 @@ export async function createOrder(cognitoSub: string, data: CreateOrderDtoType):
   
   const itemParams: any[] = [];
   cart.items.forEach((item: CartItemDtoType) => {
+    if (!item.product || !item.product.id || item.quantity <= 0) {
+      throw new ValidationError(`Invalid cart item: missing product or invalid quantity`);
+    }
     itemParams.push(orderId, item.product.id, item.quantity, item.product.base_price);
   });
   
-  await query(insertItemsQuery, itemParams);
+  try {
+    await query(insertItemsQuery, itemParams);
+  } catch (error: any) {
+    const { logger } = await import("../../utils/logger");
+    logger.error("Failed to insert order items:", {
+      error: error.message,
+      stack: error.stack,
+      query: insertItemsQuery,
+      params: itemParams,
+      items: cart.items,
+    });
+    throw new ValidationError(`Failed to create order items: ${error.message}`);
+  }
   
   // Update product stock quantities
   for (const item of cart.items) {
@@ -105,7 +136,7 @@ export async function createOrder(cognitoSub: string, data: CreateOrderDtoType):
   }
   
   // Clear cart after order creation
-  await clearCart(cognitoSub);
+  await clearCart(cognitoSub, email);
   
   return fetchOrderById(orderId, userId);
 }

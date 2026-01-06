@@ -7,7 +7,24 @@ const options: swaggerJsdoc.Options = {
     info: {
       title: "E-Commerce Store API",
       version: "1.0.0",
-      description: "API documentation for the E-Commerce Store",
+      description: `API documentation for the E-Commerce Store
+
+## Testing Authenticated Endpoints
+
+To test create, update, and delete operations in Swagger UI:
+
+1. **Get a test token**: Use the \`POST /test-token\` endpoint (available in development mode)
+   - Use test credentials: \`admin@example.com\` / \`TestAdmin123!\` (or other test users)
+   - Copy the \`token\` from the response
+
+2. **Authorize in Swagger UI**:
+   - Click the "Authorize" button at the top right
+   - Paste the token into the "Value" field
+   - Click "Authorize" then "Close"
+
+3. **Test endpoints**: Now you can test all authenticated endpoints (create, update, delete)
+
+**Note**: The test token endpoint is only available in development mode.`,
     },
     servers: [
       {
@@ -524,6 +541,99 @@ const options: swaggerJsdoc.Options = {
               type: "string",
               nullable: true,
               description: "Stripe payment intent ID",
+            },
+          },
+          description: "At least one field must be provided",
+        },
+        CreateUser: {
+          type: "object",
+          properties: {
+            email: {
+              type: "string",
+              format: "email",
+              description: "User's email address",
+            },
+            password: {
+              type: "string",
+              minLength: 8,
+              description: "User's password (minimum 8 characters)",
+            },
+            fullName: {
+              type: "string",
+              nullable: true,
+              description: "User's full name (optional)",
+            },
+            role: {
+              type: "string",
+              enum: ["admin", "superadmin"],
+              description: "User's role. Admins can only create admin users. Superadmins can create both.",
+            },
+          },
+          required: ["email", "password", "role"],
+        },
+        CreateUserResponse: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Database user ID",
+            },
+            email: {
+              type: "string",
+              format: "email",
+              description: "User's email address",
+            },
+            fullName: {
+              type: "string",
+              nullable: true,
+              description: "User's full name",
+            },
+            role: {
+              type: "string",
+              enum: ["admin", "superadmin"],
+              description: "User's role",
+            },
+            cognitoSub: {
+              type: "string",
+              description: "Cognito user sub (UUID)",
+            },
+          },
+          required: ["id", "email", "role", "cognitoSub"],
+        },
+        Manufacturer: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Manufacturer ID",
+            },
+            name: {
+              type: "string",
+              description: "Manufacturer name",
+            },
+          },
+          required: ["id", "name"],
+        },
+        CreateManufacturer: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              minLength: 1,
+              maxLength: 255,
+              description: "Manufacturer name (must be unique)",
+            },
+          },
+          required: ["name"],
+        },
+        UpdateManufacturer: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              minLength: 1,
+              maxLength: 255,
+              description: "Manufacturer name (must be unique)",
             },
           },
           description: "At least one field must be provided",

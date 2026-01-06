@@ -3,23 +3,7 @@ import { WishlistDto, WishlistDtoType } from "../../dtos/wishlistDto";
 import { validateDto } from "../../utils/validateDto";
 import { NotFoundError } from "../../errors/NotFoundError";
 import { ProductDto } from "../../dtos/productDto";
-
-/**
- * Gets user ID from database using cognito_sub
- */
-export async function getUserIdByCognitoSub(cognitoSub: string): Promise<number> {
-  const getUserQuery = `
-    SELECT id FROM users WHERE cognito_sub = $1
-  `;
-  
-  const result = await query(getUserQuery, [cognitoSub]);
-  
-  if (result.rows.length === 0) {
-    throw new NotFoundError(`User with cognito_sub ${cognitoSub} not found`);
-  }
-  
-  return result.rows[0].id;
-}
+import { getUserIdByCognitoSub } from "../users/userService";
 
 /**
  * Gets or creates a wishlist for a user

@@ -7,6 +7,9 @@ const validate = (
 ): RequestHandler => {
   return async (req, res, next) => {
     try {
+      if (!schema) {
+        throw new Error(`Schema is undefined for ${source} validation`);
+      }
       const validatedData = await schema.parseAsync(req[source]);
       res.locals[source] = validatedData;
       next();

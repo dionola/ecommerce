@@ -9,7 +9,13 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  logger.error("Error:", error);
+  // Log full error details
+  logger.error("Error:", {
+    message: error.message,
+    name: error.name,
+    stack: error.stack,
+    error: error,
+  });
 
   // Handle validation errors with proper status code
   if (error instanceof ValidationError) {
@@ -30,6 +36,7 @@ export function errorHandler(
   res.status(500).json({
     message: "Internal server error",
     error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
   });
 }
 

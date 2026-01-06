@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import * as cartService from '../services/cart';
 import * as guestCartService from '../services/guestCart';
 import { useAuth } from './AuthContext'
@@ -28,7 +28,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshCart = async () => {
+  const refreshCart = useCallback(async () => {
     if (!isAuthenticated) {
       // Load guest cart from localStorage
       const guestCart = guestCartService.getGuestCart();
@@ -51,7 +51,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   const mergeGuestCartToServer = async () => {
     const guestCart = guestCartService.getGuestCart();
@@ -78,6 +78,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Initial load and when authentication state changes
   useEffect(() => {
     if (isAuthenticated) {
       // When user logs in, merge guest cart first, then refresh server cart
@@ -88,7 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // When user logs out, load guest cart
       refreshCart();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, refreshCart]);
 
   const addItem = async (productId: number, quantity: number = 1) => {
     if (!isAuthenticated) {

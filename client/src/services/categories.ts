@@ -1,6 +1,7 @@
-import apiRequest from './api';
+import { api } from './api';
 
 export async function getCategories(): Promise<string[]> {
-  return apiRequest<string[]>('/products/categories');
+  const response = await api.get<string[]>('/products/categories');
+  return response.data;
 }
 

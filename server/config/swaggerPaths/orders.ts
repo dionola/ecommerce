@@ -266,8 +266,8 @@ export const ordersDefinition = {
     },
     delete: {
       operationId: "deleteOrder",
-      summary: "Delete an order",
-      description: "Delete an order by ID. Only pending orders can be deleted. Requires authentication.",
+      summary: "Delete an order (Admin-only)",
+      description: "Delete an order by ID. Only pending orders can be deleted. Requires admin or superadmin role.",
       tags: ["Orders"],
       security: [{ bearerAuth: [] }],
       parameters: [
@@ -302,6 +302,14 @@ export const ordersDefinition = {
             },
           },
         },
+        403: {
+          description: "Forbidden - Insufficient permissions (admin or superadmin required)",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/Error" },
+            },
+          },
+        },
         404: {
           description: "Order not found",
           content: {
@@ -314,6 +322,7 @@ export const ordersDefinition = {
     },
   },
 };
+
 
 
 

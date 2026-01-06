@@ -1,11 +1,12 @@
 import { query } from "../../models/databaseModel";
 import { WishlistDtoType, AddWishlistItemDtoType } from "../../dtos/wishlistDto";
-import { getOrCreateWishlist, checkWishlistItemExists, fetchWishlistByUserId, getUserIdByCognitoSub } from "./wishlistHelpers";
+import { getOrCreateWishlist, checkWishlistItemExists, fetchWishlistByUserId } from "./wishlistHelpers";
+import { getOrCreateUser } from "../users/userService";
 import { checkProductExists } from "../products/productHelpers";
 import { ValidationError } from "../../errors/ValidationError";
 
-export async function addWishlistItem(cognitoSub: string, data: AddWishlistItemDtoType): Promise<WishlistDtoType> {
-  const userId = await getUserIdByCognitoSub(cognitoSub);
+export async function addWishlistItem(cognitoSub: string, email: string, data: AddWishlistItemDtoType): Promise<WishlistDtoType> {
+  const userId = await getOrCreateUser(cognitoSub, email);
   const wishlistId = await getOrCreateWishlist(userId);
   
   // Check if product exists
@@ -27,6 +28,7 @@ export async function addWishlistItem(cognitoSub: string, data: AddWishlistItemD
   
   return fetchWishlistByUserId(userId);
 }
+
 
 
 

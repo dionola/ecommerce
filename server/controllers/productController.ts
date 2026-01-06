@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 
 import * as productService from "../services/products/productService";
+import * as productImageService from "../services/products/productImageService";
+import * as productBulkService from "../services/products/productBulkService";
+import * as productStatusService from "../services/products/productStatusService";
 import { 
   GetProductsResponseDtoType, 
   GetProductsQueryParamsDtoType,
@@ -8,6 +11,21 @@ import {
   UpdateProductDtoType,
   ProductIdParamDtoType
 } from "../dtos/productDto";
+import {
+  CreateProductImagesDtoType,
+  UpdateProductImageDtoType,
+  ReorderProductImagesDtoType,
+  ProductImageIdParamDtoType,
+} from "../dtos/productImageDto";
+import {
+  BulkCreateProductsDtoType,
+  BulkUpdateProductsDtoType,
+  BulkDeleteProductsDtoType,
+} from "../dtos/productBulkDto";
+import {
+  AddProductStatusDtoType,
+  ProductStatusParamDtoType,
+} from "../dtos/productStatusDto";
 
 async function getProducts(req: Request, res: Response) {
     const query = res.locals.query as GetProductsQueryParamsDtoType;
@@ -45,4 +63,85 @@ async function getCategories(req: Request, res: Response) {
     res.json(categories);
 }
 
-export default { getProducts, getProduct, createProduct, updateProduct, deleteProduct, getCategories };
+// Product Image Management
+async function addProductImages(req: Request, res: Response) {
+    const params = res.locals.params as ProductIdParamDtoType;
+    const body = res.locals.body as CreateProductImagesDtoType;
+    const result = await productImageService.addProductImages(params.id, body.images);
+    res.status(201).json(result);
+}
+
+async function updateProductImage(req: Request, res: Response) {
+    const params = res.locals.params as ProductImageIdParamDtoType;
+    const body = res.locals.body as UpdateProductImageDtoType;
+    const result = await productImageService.updateProductImage(
+        params.productId,
+        params.imageId,
+        body
+    );
+    res.json(result);
+}
+
+async function deleteProductImage(req: Request, res: Response) {
+    const params = res.locals.params as ProductImageIdParamDtoType;
+    const result = await productImageService.deleteProductImage(params.productId, params.imageId);
+    res.json(result);
+}
+
+async function reorderProductImages(req: Request, res: Response) {
+    const params = res.locals.params as ProductIdParamDtoType;
+    const body = res.locals.body as ReorderProductImagesDtoType;
+    const result = await productImageService.reorderProductImages(params.id, body.imageIds);
+    res.json(result);
+}
+
+// Bulk Operations
+async function bulkCreateProducts(req: Request, res: Response) {
+    const body = res.locals.body as BulkCreateProductsDtoType;
+    const result = await productBulkService.bulkCreateProducts(body);
+    res.status(201).json(result);
+}
+
+async function bulkUpdateProducts(req: Request, res: Response) {
+    const body = res.locals.body as BulkUpdateProductsDtoType;
+    const result = await productBulkService.bulkUpdateProducts(body);
+    res.json(result);
+}
+
+async function bulkDeleteProducts(req: Request, res: Response) {
+    const body = res.locals.body as BulkDeleteProductsDtoType;
+    const result = await productBulkService.bulkDeleteProducts(body);
+    res.json(result);
+}
+
+// Status Management
+async function addProductStatus(req: Request, res: Response) {
+    const params = res.locals.params as ProductIdParamDtoType;
+    const body = res.locals.body as AddProductStatusDtoType;
+    const result = await productStatusService.addProductStatus(params.id, body.status);
+    res.status(201).json(result);
+}
+
+async function removeProductStatus(req: Request, res: Response) {
+    const params = res.locals.params as ProductStatusParamDtoType;
+    const result = await productStatusService.removeProductStatus(params.productId, params.status);
+    res.json(result);
+}
+
+export default {
+    getProducts,
+    getProduct,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    getCategories,
+    addProductImages,
+    updateProductImage,
+    deleteProductImage,
+    reorderProductImages,
+    bulkCreateProducts,
+    bulkUpdateProducts,
+    bulkDeleteProducts,
+    addProductStatus,
+    removeProductStatus,
+};

@@ -1,11 +1,11 @@
 import { query } from "../../models/databaseModel";
 import { CartDtoType, AddCartItemDtoType } from "../../dtos/cartDto";
 import { getOrCreateCart, updateCartTimestamp, fetchCartByUserId, getCartItemByProductId, validateStock } from "./cartHelpers";
-import { getUserIdByCognitoSub } from "../wishlists/wishlistHelpers";
+import { getOrCreateUser } from "../users/userService";
 import { checkProductExists } from "../products/productHelpers";
 
-export async function addCartItem(cognitoSub: string, data: AddCartItemDtoType): Promise<CartDtoType> {
-  const userId = await getUserIdByCognitoSub(cognitoSub);
+export async function addCartItem(cognitoSub: string, email: string, data: AddCartItemDtoType): Promise<CartDtoType> {
+  const userId = await getOrCreateUser(cognitoSub, email);
   const cartId = await getOrCreateCart(userId);
   
   // Check if product exists

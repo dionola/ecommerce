@@ -1,9 +1,10 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Input } from "./ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Switch } from "./ui/switch"
 import { Label } from "./ui/label"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { Search, SlidersHorizontal, ChevronDown, X, Sofa, Lightbulb, Sparkles, Box, Shirt, ChefHat, Droplet, TreePine, Zap, Watch, Package } from "lucide-react"
+import { getCategories } from "../services/categories"
 
 export interface ProductFilters {
   search?: string
@@ -13,10 +14,87 @@ export interface ProductFilters {
   in_stock?: boolean
   sort_by?: "name" | "price" | "created_at"
   order?: "asc" | "desc"
+  category?: string
 }
 
-export function ProductFilters({ onFilterChange }: { onFilterChange: (filters: ProductFilters) => void }) {
+// Category to icon mapping (case-insensitive matching)
+const getCategoryIcon = (category: string): typeof Package => {
+  const normalized = category.toLowerCase().trim()
+  
+  const iconMap: Record<string, typeof Package> = {
+    'furniture': Sofa,
+    'lighting': Lightbulb,
+    'decor': Sparkles,
+    'decoration': Sparkles,
+    'storage': Box,
+    'textiles': Shirt,
+    'textile': Shirt,
+    'kitchen': ChefHat,
+    'bathroom': Droplet,
+    'bath': Droplet,
+    'outdoor': TreePine,
+    'electronics': Zap,
+    'electronic': Zap,
+    'accessories': Watch,
+    'accessory': Watch,
+  }
+  
+  return iconMap[normalized] || Package
+}
+
+export function ProductFilters({ onFilterChange, initialCategory }: { onFilterChange: (filters: ProductFilters) => void; initialCategory?: string }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [categories, setCategories] = useState<string[]>([])
+  const [categorySearch, setCategorySearch] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(initialCategory)
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const categoryDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const cats = await getCategories()
+        setCategories(cats)
+      } catch (err) {
+        console.error('Failed to load categories:', err)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategory(initialCategory)
+    }
+  }, [initialCategory])
+
+  // Close category dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false)
+      }
+    }
+
+    if (isCategoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isCategoryDropdownOpen])
+
+  const filteredCategories = categories.filter(cat =>
+    cat.toLowerCase().includes(categorySearch.toLowerCase())
+  )
+
+  const handleCategorySelect = (category: string | undefined) => {
+    setSelectedCategory(category)
+    setIsCategoryDropdownOpen(false)
+    setCategorySearch("")
+    onFilterChange({ category })
+  }
 
   return (
     <div className="mb-12 border-b border-border pb-8">
@@ -41,6 +119,76 @@ export function ProductFilters({ onFilterChange }: { onFilterChange: (filters: P
 
       {isOpen && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-8 p-8 bg-secondary animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="space-y-4">
+            <Label className="text-[10px] font-bold uppercase tracking-widest">Category</Label>
+            <div className="relative" ref={categoryDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                className="w-full flex items-center justify-between px-3 py-2 h-9 rounded-none border border-border bg-background text-xs uppercase font-bold tracking-widest hover:bg-secondary transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  {selectedCategory ? (
+                    <>
+                      {(() => {
+                        const Icon = getCategoryIcon(selectedCategory)
+                        return <Icon className="w-4 h-4 shrink-0" />
+                      })()}
+                      <span>{selectedCategory}</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">All Categories</span>
+                  )}
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isCategoryDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border shadow-lg z-50 max-h-[300px] overflow-hidden flex flex-col">
+                  <div className="p-2 border-b border-border">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search categories..."
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        className="pl-8 h-8 text-xs rounded-none border-border"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto max-h-[250px]">
+                    <button
+                      type="button"
+                      onClick={() => handleCategorySelect(undefined)}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-secondary transition-colors flex items-center gap-2 ${!selectedCategory ? 'bg-secondary' : ''}`}
+                    >
+                      <Package className="w-4 h-4 shrink-0" />
+                      <span>All Categories</span>
+                    </button>
+                    {filteredCategories.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">No categories found</div>
+                    ) : (
+                      filteredCategories.map((category) => {
+                        const Icon = getCategoryIcon(category)
+                        return (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => handleCategorySelect(category)}
+                            className={`w-full text-left px-3 py-2 text-xs hover:bg-secondary transition-colors flex items-center gap-2 ${selectedCategory === category ? 'bg-secondary' : ''}`}
+                          >
+                            <Icon className="w-4 h-4 shrink-0" />
+                            <span>{category}</span>
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-4">
             <Label className="text-[10px] font-bold uppercase tracking-widest">Price Range</Label>
             <div className="flex items-center gap-4">

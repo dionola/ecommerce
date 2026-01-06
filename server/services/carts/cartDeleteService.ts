@@ -1,11 +1,11 @@
 import { query } from "../../models/databaseModel";
 import { CartDtoType } from "../../dtos/cartDto";
 import { updateCartTimestamp, fetchCartByUserId } from "./cartHelpers";
-import { getUserIdByCognitoSub } from "../wishlists/wishlistHelpers";
+import { getOrCreateUser } from "../users/userService";
 import { NotFoundError } from "../../errors/NotFoundError";
 
-export async function removeCartItem(cognitoSub: string, itemId: number): Promise<CartDtoType> {
-  const userId = await getUserIdByCognitoSub(cognitoSub);
+export async function removeCartItem(cognitoSub: string, itemId: number, email?: string): Promise<CartDtoType> {
+  const userId = await getOrCreateUser(cognitoSub, email || "unknown@example.com");
   
   // Get cart item and verify it belongs to user's cart
   const getItemQuery = `
@@ -33,8 +33,8 @@ export async function removeCartItem(cognitoSub: string, itemId: number): Promis
   return fetchCartByUserId(userId);
 }
 
-export async function clearCart(cognitoSub: string): Promise<CartDtoType> {
-  const userId = await getUserIdByCognitoSub(cognitoSub);
+export async function clearCart(cognitoSub: string, email?: string): Promise<CartDtoType> {
+  const userId = await getOrCreateUser(cognitoSub, email || "unknown@example.com");
   
   // Get user's cart
   const getCartQuery = `

@@ -1,7 +1,7 @@
 import { query } from "../../models/databaseModel";
 import { CartDtoType, UpdateCartItemDtoType } from "../../dtos/cartDto";
 import { updateCartTimestamp, fetchCartByUserId, validateStock } from "./cartHelpers";
-import { getUserIdByCognitoSub } from "../wishlists/wishlistHelpers";
+import { getUserIdByCognitoSub } from "../users/userService";
 import { NotFoundError } from "../../errors/NotFoundError";
 
 export async function updateCartItem(cognitoSub: string, itemId: number, data: UpdateCartItemDtoType): Promise<CartDtoType> {

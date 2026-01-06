@@ -36,10 +36,11 @@ async function importCsv(filePath: string) {
       );
       const manufacturerId = manufacturerRes.rows[0].id;
 
-      // 2. Product Insert
+      // 2. Product Insert (include category if available in CSV)
+      const category = record.category || record.Category || record.CATEGORY || null;
       const productRes = await client.query(
-        `INSERT INTO products (name, description, base_price, country_of_origin, stock_quantity, manufacturer_id)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        `INSERT INTO products (name, description, base_price, country_of_origin, stock_quantity, manufacturer_id, category)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
         [
           record.product_name,
           record.description,
@@ -47,6 +48,7 @@ async function importCsv(filePath: string) {
           record.country_of_origin,
           record.in_stock === 'TRUE' ? 10 : 0,
           manufacturerId,
+          category && category.trim() !== '' ? category.trim() : null,
         ]
       );
       const productId = productRes.rows[0].id;

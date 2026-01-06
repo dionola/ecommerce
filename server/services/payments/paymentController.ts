@@ -9,6 +9,7 @@ import {
 } from "../../dtos/paymentDto";
 import { query } from "../../models/databaseModel";
 import { NotFoundError } from "../../errors/NotFoundError";
+import { getUserIdByCognitoSub } from "../users/userService";
 
 /**
  * Create a payment intent for an order
@@ -36,7 +37,6 @@ async function createPaymentIntent(req: AuthenticatedRequest, res: Response) {
   const order = orderResult.rows[0];
 
   // Get user ID from database
-  const { getUserIdByCognitoSub } = await import("../wishlists/wishlistHelpers");
   const userId = await getUserIdByCognitoSub(req.user.sub);
 
   // Verify order belongs to user (unless admin)
@@ -98,7 +98,6 @@ async function confirmPayment(req: AuthenticatedRequest, res: Response) {
   const order = orderResult.rows[0];
 
   // Get user ID from database
-  const { getUserIdByCognitoSub } = await import("../wishlists/wishlistHelpers");
   const userId = await getUserIdByCognitoSub(req.user.sub);
 
   // Verify order belongs to user (unless admin)
@@ -156,7 +155,6 @@ async function getPaymentIntentStatus(req: AuthenticatedRequest, res: Response) 
   const order = orderResult.rows[0];
 
   // Get user ID from database
-  const { getUserIdByCognitoSub } = await import("../wishlists/wishlistHelpers");
   const userId = await getUserIdByCognitoSub(req.user.sub);
 
   // Verify order belongs to user (unless admin)
@@ -201,7 +199,6 @@ async function cancelPaymentIntent(req: AuthenticatedRequest, res: Response) {
   const order = orderResult.rows[0];
 
   // Get user ID from database
-  const { getUserIdByCognitoSub } = await import("../wishlists/wishlistHelpers");
   const userId = await getUserIdByCognitoSub(req.user.sub);
 
   // Verify order belongs to user (unless admin)
@@ -255,7 +252,6 @@ async function refundPayment(req: AuthenticatedRequest, res: Response) {
   const order = orderResult.rows[0];
 
   // Get user ID from database
-  const { getUserIdByCognitoSub } = await import("../wishlists/wishlistHelpers");
   const userId = await getUserIdByCognitoSub(req.user.sub);
 
   // Verify order belongs to user (unless admin)
@@ -297,6 +293,7 @@ export default {
   cancelPaymentIntent,
   refundPayment,
 };
+
 
 
 
