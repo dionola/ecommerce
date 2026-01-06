@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { ProductFilters } from "./ProductFilters"
 import { useCart } from "../contexts/CartContext"
@@ -7,9 +7,11 @@ import { getProducts } from "../services/products"
 import { mapProductDtoToProduct } from "../types/product"
 import { ProductStatusBadge } from "./ProductStatusBadge"
 import { addToWishlist, removeFromWishlist, getWishlist } from "../services/wishlists"
-import { Heart } from "lucide-react"
+import { Heart, Grid3x3, List } from "lucide-react"
 import { toast } from "./ui/toaster"
 import type { ProductFilters as FilterType } from "./ProductFilters"
+
+type ViewMode = "grid" | "list"
 
 export function ProductGrid() {
   const [products, setProducts] = useState<any[]>([])
@@ -19,6 +21,7 @@ export function ProductGrid() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [searchParams] = useSearchParams()
   const { addItem } = useCart()
   const { isAuthenticated } = useAuth()
@@ -56,7 +59,14 @@ export function ProductGrid() {
       }
       setError(null)
       try {
-        const response = await getProducts({ ...filters, page, limit: 20 })
+        // Convert categories array to query params
+        const queryParams: any = { ...filters, page, limit: 20 }
+        // If categories array is provided, use it and remove single category
+        if (filters.categories && filters.categories.length > 0) {
+          queryParams.categories = filters.categories
+          delete queryParams.category
+        }
+        const response = await getProducts(queryParams)
         const mappedProducts = response.products.map(mapProductDtoToProduct)
         
         if (page === 1) {
@@ -106,6 +116,27 @@ export function ProductGrid() {
       loadWishlist()
     }
   }, [isAuthenticated])
+
+  // Scroll to grid when hash is present or when navigating to collection
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash
+      if (hash === '#collection') {
+        setTimeout(() => {
+          if (productGridRef.current) {
+            productGridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+      }
+    }
+
+    // Check on mount
+    handleHashChange()
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
 
   const loadWishlist = async () => {
     try {
@@ -193,31 +224,87 @@ export function ProductGrid() {
   }
 
   return (
-    <section ref={productGridRef} className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
+    <section ref={productGridRef} id="collection" className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
       <ProductFilters 
         onFilterChange={(newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }))}
         initialCategory={filters.category}
+        currentFilters={filters}
       />
 
       <div className="flex justify-between items-end mb-12">
         <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground block mb-2">
-            New Arrivals
-          </span>
-          <h2 className="text-4xl font-bold tracking-tighter uppercase">Selected Items</h2>
+          <h2 className="text-4xl font-bold tracking-tighter uppercase">Collection</h2>
         </div>
-        <div className="hidden md:block">
-          <p className="text-sm font-medium uppercase tracking-widest underline underline-offset-8 cursor-pointer hover:text-muted-foreground transition-colors">
-            View All Products
-          </p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`p-2 transition-colors ${viewMode === "grid" ? "bg-black text-white" : "bg-secondary hover:bg-secondary/80"}`}
+            aria-label="Grid view"
+          >
+            <Grid3x3 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode("list")}
+            className={`p-2 transition-colors ${viewMode === "list" ? "bg-black text-white" : "bg-secondary hover:bg-secondary/80"}`}
+            aria-label="List view"
+          >
+            <List className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+      <div className={viewMode === "grid" 
+        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16"
+        : "space-y-8"
+      }>
         {products.map((product) => (
-          <div key={product.id} className="group block">
-            <Link to={`/product/${product.id}`} className="block">
-              <div className="aspect-[3/4] overflow-hidden bg-secondary mb-6 relative group/image">
+          viewMode === "grid" ? (
+            <div key={product.id} className="group block">
+              <Link to={`/product/${product.id}`} className="block">
+                <div className="aspect-[3/4] overflow-hidden bg-secondary mb-6 relative group/image">
+                  <img
+                    src={product.mainImage || "/placeholder.svg"}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                  />
+                  <ProductStatusBadge statuses={product.statuses || []} />
+                  {isAuthenticated && (
+                    <button
+                      onClick={(e) => handleToggleWishlist(e, product.id)}
+                      className="absolute top-4 right-4 p-2 bg-background/80 backdrop-blur-sm hover:bg-background transition-colors opacity-0 group-hover/image:opacity-100"
+                      aria-label={wishlistProductIds.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart className={`w-5 h-5 ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                    </button>
+                  )}
+                </div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground uppercase tracking-widest mt-1">
+                      Reference No. {product.id}
+                    </p>
+                  </div>
+                  <p className="font-bold text-lg tracking-tighter">${product.price.toFixed(2)}</p>
+                </div>
+              </Link>
+              {product.inStock && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleAddToCart(product, 1)
+                  }}
+                  className="mt-4 w-full bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+                >
+                  Add to Cart
+                </button>
+              )}
+            </div>
+          ) : (
+            <div key={product.id} className="group flex gap-8 border-b border-border pb-8">
+              <Link to={`/product/${product.id}`} className="flex-shrink-0 w-48 h-64 overflow-hidden bg-secondary relative group/image">
                 <img
                   src={product.mainImage || "/placeholder.svg"}
                   alt={product.name}
@@ -233,31 +320,40 @@ export function ProductGrid() {
                     <Heart className={`w-5 h-5 ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
                   </button>
                 )}
-              </div>
-              <div className="flex justify-between items-start">
+              </Link>
+              <div className="flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-lg font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground uppercase tracking-widest mt-1">
-                    Reference No. {product.id}
-                  </p>
+                  <Link to={`/product/${product.id}`} className="block">
+                    <h3 className="text-2xl font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4 mb-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground uppercase tracking-widest mb-4">
+                      Reference No. {product.id}
+                    </p>
+                    {product.description && (
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        {product.description}
+                      </p>
+                    )}
+                  </Link>
                 </div>
-                <p className="font-bold text-lg tracking-tighter">${product.price.toFixed(2)}</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-2xl tracking-tighter">${product.price.toFixed(2)}</p>
+                  {product.inStock && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleAddToCart(product, 1)
+                      }}
+                      className="bg-black text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+                    >
+                      Add to Cart
+                    </button>
+                  )}
+                </div>
               </div>
-            </Link>
-            {product.inStock && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  handleAddToCart(product, 1)
-                }}
-                className="mt-4 w-full bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
-              >
-                Add to Cart
-              </button>
-            )}
-          </div>
+            </div>
+          )
         ))}
       </div>
 

@@ -38,6 +38,15 @@ async function importCsv(filePath: string) {
 
       // 2. Product Insert (include category if available in CSV)
       const category = record.category || record.Category || record.CATEGORY || null;
+      // The CSV has a typo: "county_of_origin" instead of "country_of_origin"
+      const countryOfOrigin = record.county_of_origin || record.country_of_origin || null;
+      const formattedOrigin = countryOfOrigin 
+        ? countryOfOrigin.trim()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ')
+        : null;
+      
       const productRes = await client.query(
         `INSERT INTO products (name, description, base_price, country_of_origin, stock_quantity, manufacturer_id, category)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
@@ -45,7 +54,7 @@ async function importCsv(filePath: string) {
           record.product_name,
           record.description,
           parseFloat(record.initial_price) || 0,
-          record.country_of_origin,
+          formattedOrigin,
           record.in_stock === 'TRUE' ? 10 : 0,
           manufacturerId,
           category && category.trim() !== '' ? category.trim() : null,

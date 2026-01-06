@@ -13,6 +13,7 @@ export interface ProductFilters {
   page?: number;
   limit?: number;
   category?: string;
+  categories?: string[];
 }
 
 export interface GetProductsResponse {
@@ -28,7 +29,12 @@ export async function getProducts(filters: ProductFilters = {}): Promise<GetProd
   
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
-      params.append(key, String(value));
+      // Handle arrays (for categories)
+      if (Array.isArray(value) && value.length > 0) {
+        params.append(key, JSON.stringify(value));
+      } else if (!Array.isArray(value)) {
+        params.append(key, String(value));
+      }
     }
   });
 

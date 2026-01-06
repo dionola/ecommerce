@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { ShoppingCart, Menu, User, X, LayoutDashboard, ShoppingBag, Heart, Settings, Package, Tag, Building2, Users, HelpCircle, Info, Mail, Truck, RotateCcw } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { CartSheet } from "./CartSheet"
@@ -7,6 +7,8 @@ import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 
 export function Navbar() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
@@ -40,7 +42,29 @@ export function Navbar() {
             Objekt
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            <Link to="/" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
+            <Link 
+              to="/#collection" 
+              onClick={(e) => {
+                e.preventDefault()
+                if (location.pathname === '/') {
+                  // Already on home page, just scroll
+                  const element = document.getElementById('collection')
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                } else {
+                  // Navigate to home first, then scroll
+                  navigate('/#collection')
+                  setTimeout(() => {
+                    const element = document.getElementById('collection')
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }, 100)
+                }
+              }}
+              className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
+            >
               Collection
             </Link>
             <Link to="/about" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
@@ -209,8 +233,27 @@ export function Navbar() {
         <div className="md:hidden border-t border-border bg-background">
           <div className="px-6 py-4 space-y-4">
             <Link 
-              to="/" 
-              onClick={() => setIsMobileMenuOpen(false)}
+              to="/#collection" 
+              onClick={(e) => {
+                setIsMobileMenuOpen(false)
+                e.preventDefault()
+                if (location.pathname === '/') {
+                  // Already on home page, just scroll
+                  const element = document.getElementById('collection')
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                } else {
+                  // Navigate to home first, then scroll
+                  navigate('/#collection')
+                  setTimeout(() => {
+                    const element = document.getElementById('collection')
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  }, 100)
+                }
+              }}
               className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               Collection

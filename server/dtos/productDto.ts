@@ -41,6 +41,16 @@ export const GetProductsQueryParamsDto = z.object({
   in_stock: z.coerce.boolean().optional(),
   status: z.string().optional(),
   category: z.string().optional(),
+  categories: z.union([z.string(), z.array(z.string())]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      try {
+        return JSON.parse(val);
+      } catch {
+        return [val];
+      }
+    }
+    return val;
+  }),
   sort_by: z.enum(["name", "price", "created_at"]).optional().default("created_at"),
   order: z.enum(["asc", "desc"]).optional().default("desc"),
   page: z.coerce.number().int().positive().optional().default(1),

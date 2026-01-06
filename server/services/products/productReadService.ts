@@ -40,9 +40,9 @@ function buildFilterConditions(filters: GetProductsQueryParamsDtoType): FilterCo
     paramIndex++;
   }
 
-  // Country of origin filter
+  // Country of origin filter (case-insensitive)
   if (filters.country_of_origin) {
-    conditions.push(`p.country_of_origin = $${paramIndex}`);
+    conditions.push(`LOWER(p.country_of_origin) = LOWER($${paramIndex})`);
     params.push(filters.country_of_origin);
     paramIndex++;
   }
@@ -66,8 +66,14 @@ function buildFilterConditions(filters: GetProductsQueryParamsDtoType): FilterCo
     paramIndex++;
   }
 
-  // Category filter
-  if (filters.category) {
+  // Multiple categories filter (takes priority over single category)
+  if (filters.categories && Array.isArray(filters.categories) && filters.categories.length > 0) {
+    const placeholders = filters.categories.map((_, i) => `$${paramIndex + i}`).join(', ');
+    conditions.push(`p.category IN (${placeholders})`);
+    params.push(...filters.categories);
+    paramIndex += filters.categories.length;
+  } else if (filters.category) {
+    // Single category filter (for backward compatibility)
     conditions.push(`p.category = $${paramIndex}`);
     params.push(filters.category);
     paramIndex++;
