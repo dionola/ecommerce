@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { getOrders } from '../services/orders';
 import type { Order } from '../services/orders';
-import { ShoppingBag, Eye } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
 export default function OrderHistory() {
@@ -54,7 +55,11 @@ export default function OrderHistory() {
                   });
 
                 return (
-                  <div key={order.id} className="border border-border rounded-lg p-4">
+                  <div 
+                    key={order.id} 
+                    className="border border-border rounded-lg p-4 cursor-pointer hover:bg-secondary/50 transition-colors"
+                    onClick={() => setSelectedOrder(order)}
+                  >
                     <div className="flex items-start justify-between gap-4">
                       {/* Thumbnails - stacked */}
                       {thumbnails.length > 0 && (
@@ -112,14 +117,6 @@ export default function OrderHistory() {
                         </p>
                         <p className="text-sm">{order.items.length} item(s)</p>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedOrder(order)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </Button>
                     </div>
                   </div>
                 );
@@ -146,6 +143,8 @@ export default function OrderHistory() {
 }
 
 function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => void }) {
+  const navigate = useNavigate();
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-background border border-border rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -169,9 +168,19 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
               {order.items.map((item) => {
                 const mainImage = item.product.images?.find(img => img.is_main);
                 const imageUrl = mainImage?.url || item.product.images?.[0]?.url || '/placeholder.svg';
+                const originalPrice = item.product.base_price;
+                const actualPrice = item.price_at_purchase;
+                const hasDiscount = originalPrice > actualPrice;
                 
                 return (
-                  <div key={item.id} className="flex items-center gap-4 p-2 border border-border rounded">
+                  <div 
+                    key={item.id} 
+                    className="flex items-center gap-4 p-2 border border-border rounded cursor-pointer hover:bg-secondary/50 transition-colors"
+                    onClick={() => {
+                      navigate(`/product/${item.product.id}`);
+                      onClose();
+                    }}
+                  >
                     <div className="w-16 h-16 flex-shrink-0 bg-secondary overflow-hidden rounded">
                       <img
                         src={imageUrl}
@@ -182,10 +191,33 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                     <div className="flex-1">
                       <p className="font-semibold">{item.product.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        Quantity: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
+                        Quantity: {item.quantity}
                       </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {hasDiscount ? (
+                          <>
+                            <p className="text-sm text-muted-foreground line-through">
+                              ${originalPrice.toFixed(2)}
+                            </p>
+                            <p className="text-sm font-semibold">
+                              ${actualPrice.toFixed(2)} each
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-semibold">
+                            ${actualPrice.toFixed(2)} each
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <p className="font-semibold">${(item.quantity * item.price_at_purchase).toFixed(2)}</p>
+                    <div className="text-right">
+                      {hasDiscount && (
+                        <p className="text-xs text-muted-foreground line-through mb-1">
+                          ${(item.quantity * originalPrice).toFixed(2)}
+                        </p>
+                      )}
+                      <p className="font-semibold">${(item.quantity * actualPrice).toFixed(2)}</p>
+                    </div>
                   </div>
                 );
               })}

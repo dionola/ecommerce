@@ -43,8 +43,8 @@ const getCategoryIcon = (category: string): typeof Package => {
   return iconMap[normalized] || Package
 }
 
-export function ProductFilters({ onFilterChange, initialCategory, currentFilters }: { onFilterChange: (filters: ProductFilters) => void; initialCategory?: string; currentFilters?: ProductFilters }) {
-  const [isOpen, setIsOpen] = useState(false)
+export function ProductFilters({ onFilterChange, initialCategory, currentFilters, defaultOpen = false }: { onFilterChange: (filters: ProductFilters) => void; initialCategory?: string; currentFilters?: ProductFilters; defaultOpen?: boolean }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
   const [categories, setCategories] = useState<string[]>([])
   const [categorySearch, setCategorySearch] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
@@ -179,7 +179,11 @@ export function ProductFilters({ onFilterChange, initialCategory, currentFilters
             <div className="relative" ref={categoryDropdownRef}>
               <button
                 type="button"
-                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
+                }}
                 className="w-full flex items-center justify-between px-3 py-2 h-9 rounded-none border border-border bg-background text-xs uppercase font-bold tracking-widest hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -197,7 +201,10 @@ export function ProductFilters({ onFilterChange, initialCategory, currentFilters
                 <ChevronDown className={`w-4 h-4 transition-transform shrink-0 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {isCategoryDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border shadow-lg z-50 max-h-[300px] overflow-hidden flex flex-col">
+                <div 
+                  className="absolute bottom-full left-0 right-0 mb-1 bg-background border border-border shadow-lg z-50 max-h-[300px] overflow-hidden flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="p-2 border-b border-border">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -214,7 +221,11 @@ export function ProductFilters({ onFilterChange, initialCategory, currentFilters
                     {selectedCategories.length > 0 && (
                       <button
                         type="button"
-                        onClick={handleClearCategories}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleClearCategories()
+                        }}
                         className="w-full text-left px-3 py-2 text-xs hover:bg-secondary transition-colors flex items-center gap-2 text-muted-foreground"
                       >
                         <X className="w-4 h-4 shrink-0" />
@@ -231,7 +242,11 @@ export function ProductFilters({ onFilterChange, initialCategory, currentFilters
                           <button
                             key={category}
                             type="button"
-                            onClick={() => handleCategoryToggle(category)}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleCategoryToggle(category)
+                            }}
                             className={`w-full text-left px-3 py-2 text-xs hover:bg-secondary transition-colors flex items-center gap-2 ${isSelected ? 'bg-secondary' : ''}`}
                           >
                             <div className={`w-4 h-4 border border-border flex items-center justify-center shrink-0 ${isSelected ? 'bg-black border-black' : ''}`}>

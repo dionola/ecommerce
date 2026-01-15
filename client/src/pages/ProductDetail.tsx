@@ -216,9 +216,9 @@ export default function ProductDetail() {
           <div className="lg:col-span-5 flex flex-col justify-between py-4">
             <div>
               <div className="flex items-center gap-4 mb-8">
-                <span className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 bg-black text-white">
+                {/* <span className="text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-1.5 bg-black text-white">
                   {product.country_of_origin || "Unknown"}
-                </span>
+                </span> */}
                 <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
                   ID NO. {product.id}
                 </span>

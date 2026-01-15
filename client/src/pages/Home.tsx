@@ -8,7 +8,7 @@ export default function Home() {
     <main className="min-h-screen bg-background font-sans selection:bg-primary selection:text-primary-foreground">
       <Navbar />
       <Hero />
-      <ProductGrid />
+      <ProductGrid defaultFiltersOpen={true} />
       <Footer />
     </main>
   )

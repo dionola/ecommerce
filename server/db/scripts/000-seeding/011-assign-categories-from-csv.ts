@@ -80,3 +80,4 @@ assignCategoriesFromCsv().catch((error) => {
   process.exit(1);
 });
 
+

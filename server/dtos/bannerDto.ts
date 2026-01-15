@@ -22,3 +22,4 @@ export const UpdateBannerDto = z.object({
 export type BannerDtoType = z.infer<typeof BannerDto>;
 export type UpdateBannerDtoType = z.infer<typeof UpdateBannerDto>;
 
+

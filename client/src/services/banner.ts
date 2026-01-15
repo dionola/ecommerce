@@ -29,3 +29,4 @@ export async function updateBanner(data: UpdateBannerData): Promise<Banner> {
   return response.data;
 }
 
+

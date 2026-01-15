@@ -13,7 +13,7 @@ import type { ProductFilters as FilterType } from "./ProductFilters"
 
 type ViewMode = "grid" | "list"
 
-export function ProductGrid() {
+export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen?: boolean } = {}) {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -43,10 +43,12 @@ export function ProductGrid() {
     }
   }, [searchParams])
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 and set loading when filters change
   useEffect(() => {
     setPage(1)
+    setLoading(true)
     setProducts([])
+    setError(null)
   }, [filters])
 
   // Fetch products
@@ -207,28 +209,13 @@ export function ProductGrid() {
     }
   }
 
-  if (loading) {
-    return (
-      <section className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
-        <div className="text-center text-muted-foreground">Loading products...</div>
-      </section>
-    )
-  }
-
-  if (error) {
-    return (
-      <section className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
-        <div className="text-center text-destructive">{error}</div>
-      </section>
-    )
-  }
-
   return (
     <section ref={productGridRef} id="collection" className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
       <ProductFilters 
         onFilterChange={(newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }))}
         initialCategory={filters.category}
         currentFilters={filters}
+        defaultOpen={defaultFiltersOpen}
       />
 
       <div className="flex justify-between items-end mb-12">
@@ -253,12 +240,21 @@ export function ProductGrid() {
         </div>
       </div>
 
-      <div className={viewMode === "grid" 
-        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16"
-        : "space-y-8"
-      }>
-        {products.map((product) => (
-          viewMode === "grid" ? (
+      {error && (
+        <div className="text-center text-destructive py-12">{error}</div>
+      )}
+
+      {loading && products.length === 0 ? (
+        <div className="text-center text-muted-foreground py-20">
+          <div className="text-sm font-bold uppercase tracking-widest">Loading products...</div>
+        </div>
+      ) : (
+        <div className={viewMode === "grid" 
+          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16"
+          : "space-y-8"
+        }>
+          {products.map((product) => (
+            viewMode === "grid" ? (
             <div key={product.id} className="group block">
               <Link to={`/product/${product.id}`} className="block">
                 <div className="aspect-[3/4] overflow-hidden bg-secondary mb-6 relative group/image">
@@ -271,10 +267,14 @@ export function ProductGrid() {
                   {isAuthenticated && (
                     <button
                       onClick={(e) => handleToggleWishlist(e, product.id)}
-                      className="absolute top-4 right-4 p-2 bg-background/80 backdrop-blur-sm hover:bg-background transition-colors opacity-0 group-hover/image:opacity-100"
+                      className={`absolute top-4 right-4 transition-all cursor-pointer ${
+                        wishlistProductIds.has(product.id) 
+                          ? 'p-0 group-hover/image:p-2 group-hover/image:bg-background/80 group-hover/image:backdrop-blur-sm' 
+                          : 'p-2 bg-background/80 backdrop-blur-sm'
+                      } hover:bg-background`}
                       aria-label={wishlistProductIds.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                     >
-                      <Heart className={`w-5 h-5 ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                      <Heart className={`w-5 h-5 transition-all ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500 hover:scale-110 hover:opacity-80' : ''}`} />
                     </button>
                   )}
                 </div>
@@ -314,10 +314,14 @@ export function ProductGrid() {
                 {isAuthenticated && (
                   <button
                     onClick={(e) => handleToggleWishlist(e, product.id)}
-                    className="absolute top-4 right-4 p-2 bg-background/80 backdrop-blur-sm hover:bg-background transition-colors opacity-0 group-hover/image:opacity-100"
+                    className={`absolute top-4 right-4 transition-all cursor-pointer ${
+                      wishlistProductIds.has(product.id) 
+                        ? 'p-0 group-hover/image:p-2 group-hover/image:bg-background/80 group-hover/image:backdrop-blur-sm' 
+                        : 'p-2 bg-background/80 backdrop-blur-sm'
+                    } hover:bg-background`}
                     aria-label={wishlistProductIds.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                   >
-                    <Heart className={`w-5 h-5 ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart className={`w-5 h-5 transition-all ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500 hover:scale-110 hover:opacity-80' : ''}`} />
                   </button>
                 )}
               </Link>
@@ -355,17 +359,20 @@ export function ProductGrid() {
             </div>
           )
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Infinite scroll sentinel and loading indicator */}
-      <div ref={sentinelRef} className="h-10 flex items-center justify-center mt-12">
-        {isLoadingMore && (
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading more products...</p>
-        )}
-        {!hasMore && products.length > 0 && !isLoadingMore && (
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No more products</p>
-        )}
-      </div>
+      {!loading && (
+        <div ref={sentinelRef} className="h-10 flex items-center justify-center mt-12">
+          {isLoadingMore && (
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading more products...</p>
+          )}
+          {!hasMore && products.length > 0 && !isLoadingMore && (
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No more products</p>
+          )}
+        </div>
+      )}
     </section>
   )
 }
