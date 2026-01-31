@@ -68,3 +68,7 @@ export async function updatePromo(id: number, data: UpdatePromoDtoType): Promise
 
 
 
+
+
+
+

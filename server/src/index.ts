@@ -17,7 +17,7 @@ import { logger } from "../utils/logger";
 import { swaggerSpec } from "../config/swagger";
 
 const app = express();
-const port = "3000";
+const port = process.env.PORT || "3001";
 
 // CORS configuration
 app.use(cors({

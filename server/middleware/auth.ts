@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { cognitoVerifier } from "../config/cognito";
 import { logger } from "../utils/logger";
+import { OAuth2Client } from "google-auth-library";
+
+const googleAuthClient = new OAuth2Client();
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
 
 /**
  * Extended Express Request interface with authenticated user information
@@ -9,6 +13,7 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     sub: string;
     email: string;
+    name?: string;
     "cognito:groups"?: string[];
     [key: string]: any;
   };
@@ -46,6 +51,8 @@ export async function authenticate(
 
     const token = authHeader.substring(7); // Remove "Bearer " prefix
 
+    // Try to verify as Cognito token first
+    let cognitoError: unknown;
     try {
       const payload = await cognitoVerifier.verify(token);
       
@@ -57,13 +64,43 @@ export async function authenticate(
       };
 
       next();
-    } catch (error) {
-      logger.warn("JWT verification failed:", error);
-      res.status(401).json({
-        message: "Unauthorized - Invalid or expired token",
-      });
       return;
+    } catch (error) {
+      cognitoError = error;
+      // Not a Cognito token, try Google token
+      if (googleClientId) {
+        try {
+          const ticket = await googleAuthClient.verifyIdToken({
+            idToken: token,
+            audience: googleClientId,
+          });
+          const googlePayload = ticket.getPayload();
+
+          if (googlePayload && googlePayload.email && googlePayload.sub) {
+            // Extract and attach user information from Google token
+            req.user = {
+              sub: `google_${googlePayload.sub}`,
+              email: googlePayload.email,
+              name: googlePayload.name || undefined,
+              "cognito:groups": undefined, // Google users don't have Cognito groups
+            };
+
+            next();
+            return;
+          }
+        } catch (googleError) {
+          // Not a Google token either
+          logger.warn("JWT verification failed (tried both Cognito and Google):", { cognitoError, googleError });
+        }
+      }
     }
+
+    // Neither Cognito nor Google token worked
+    logger.warn("JWT verification failed - token is neither valid Cognito nor Google token");
+    res.status(401).json({
+      message: "Unauthorized - Invalid or expired token",
+    });
+    return;
   } catch (error) {
     logger.error("Authentication error:", error);
     res.status(500).json({
@@ -101,6 +138,7 @@ export async function optionalAuthenticate(
 
     const token = authHeader.substring(7); // Remove "Bearer " prefix
 
+    // Try to verify as Cognito token first
     try {
       const payload = await cognitoVerifier.verify(token);
       
@@ -108,16 +146,46 @@ export async function optionalAuthenticate(
       req.user = {
         sub: payload.sub as string,
         email: payload.email as string,
+        name: payload.name as string | undefined,
         "cognito:groups": payload["cognito:groups"] as string[] | undefined,
       };
 
       next();
-    } catch (error) {
-      // Invalid token - log warning but allow as guest
-      logger.warn("JWT verification failed for optional auth, allowing guest access:", error);
-      next();
       return;
+    } catch (cognitoError) {
+      // Not a Cognito token, try Google token
+      if (googleClientId) {
+        try {
+          const ticket = await googleAuthClient.verifyIdToken({
+            idToken: token,
+            audience: googleClientId,
+          });
+          const googlePayload = ticket.getPayload();
+
+          if (googlePayload && googlePayload.email && googlePayload.sub) {
+            req.user = {
+              sub: `google_${googlePayload.sub}`,
+              email: googlePayload.email,
+              name: googlePayload.name || undefined,
+              "cognito:groups": undefined,
+            };
+
+            next();
+            return;
+          }
+        } catch (googleError) {
+          // Not a Google token either - allow as guest
+          logger.warn("JWT verification failed for optional auth (tried both Cognito and Google), allowing guest access");
+        }
+      } else {
+        // No Google client ID configured - allow as guest
+        logger.warn("JWT verification failed for optional auth, allowing guest access:", cognitoError);
+      }
     }
+
+    // Invalid token - allow as guest
+    next();
+    return;
   } catch (error) {
     // Server error - log but still allow guest access
     logger.error("Optional authentication error, allowing guest access:", error);

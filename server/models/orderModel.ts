@@ -4,7 +4,7 @@ export interface Order {
   total_amount: number;
   status: string;
   promo_id: number | null;
-  stripe_payment_intent_id: string | null;
+  payment_intent_id: string | null;
   shipping_address: Record<string, any> | null;
   created_at: Date;
 }
@@ -16,6 +16,10 @@ export interface OrderItem {
   quantity: number;
   price_at_purchase: number;
 }
+
+
+
+
 
 
 

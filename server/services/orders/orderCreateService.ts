@@ -15,8 +15,29 @@ export async function createOrder(cognitoSub: string, email: string, data: Creat
   // Get user's cart
   const cart = await fetchCartByUserId(userId);
   
+  // Log cart details for debugging
+  const { logger } = await import("../../utils/logger");
+  logger.info("Order creation - cart check", {
+    userId,
+    cognitoSub,
+    email,
+    cartItemsCount: cart.items.length,
+    cartId: cart.id,
+    cartItems: cart.items.map(item => ({
+      productId: item.product?.id,
+      quantity: item.quantity,
+      productName: item.product?.name,
+    })),
+  });
+  
   if (cart.items.length === 0) {
-    throw new ValidationError("Cannot create order from empty cart");
+    logger.warn("Order creation failed - empty cart", {
+      userId,
+      cognitoSub,
+      email,
+      cartId: cart.id,
+    });
+    throw new ValidationError("Cannot create order from empty cart. Please add items to your cart before checkout.");
   }
   
   // Validate stock for all items
@@ -29,13 +50,10 @@ export async function createOrder(cognitoSub: string, email: string, data: Creat
     data.promo_code ?? null
   );
   
-  const { total, promoId, testStatus } = promoResult;
+  const { total, promoId } = promoResult;
   
-  // Determine initial order status (use test status if provided, otherwise "pending")
-  const initialStatus = testStatus || "pending";
-  
-  // Check if this is a test promo code (total is 0)
-  const isTestPromo = testStatus !== undefined;
+  // Determine initial order status
+  const initialStatus = "pending";
   
   // Start transaction by creating order
   const insertOrderQuery = `
@@ -49,14 +67,14 @@ export async function createOrder(cognitoSub: string, email: string, data: Creat
     total,
     initialStatus,
     promoId,
-    JSON.stringify(data.shipping_address),
+    JSON.stringify(data.shipping_address || {}),
   ]);
   
   const orderId = orderResult.rows[0].id;
   
-  // Create payment intent if requested AND not a test promo (test promos have $0 total)
+  // Create payment intent if requested and total > 0
   let paymentIntentId: string | null = null;
-  if (data.create_payment_intent && !isTestPromo && total > 0) {
+  if (data.create_payment_intent && total > 0) {
     try {
       const amountInCents = Math.round(total * 100);
       const paymentIntent = await paymentService.createPaymentIntent(
@@ -76,7 +94,7 @@ export async function createOrder(cognitoSub: string, email: string, data: Creat
       // Update order with payment intent ID
       const updateOrderQuery = `
         UPDATE orders
-        SET stripe_payment_intent_id = $1
+        SET payment_intent_id = $1
         WHERE id = $2
       `;
       await query(updateOrderQuery, [paymentIntentId, orderId]);
@@ -135,8 +153,11 @@ export async function createOrder(cognitoSub: string, email: string, data: Creat
     await query(updateStockQuery, [item.quantity, item.product.id]);
   }
   
-  // Clear cart after order creation
-  await clearCart(cognitoSub, email);
+  // Only clear cart if order is free (total = 0) and doesn't require payment
+  // For orders requiring payment, cart will be cleared after successful payment confirmation
+  if (total === 0) {
+    await clearCart(cognitoSub, email);
+  }
   
   return fetchOrderById(orderId, userId);
 }

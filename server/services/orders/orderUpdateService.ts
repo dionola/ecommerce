@@ -19,9 +19,9 @@ function buildUpdateFields(data: UpdateOrderDtoType): UpdateFields {
     paramIndex++;
   }
 
-  if (data.stripe_payment_intent_id !== undefined) {
-    fields.push(`stripe_payment_intent_id = $${paramIndex}`);
-    params.push(data.stripe_payment_intent_id ?? null);
+  if (data.payment_intent_id !== undefined) {
+    fields.push(`payment_intent_id = $${paramIndex}`);
+    params.push(data.payment_intent_id ?? null);
     paramIndex++;
   }
 
@@ -50,6 +50,10 @@ export async function updateOrder(id: number, data: UpdateOrderDtoType, userId?:
   await updateOrderFields(id, data);
   return fetchOrderById(id, userId);
 }
+
+
+
+
 
 
 

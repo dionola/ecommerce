@@ -1,11 +1,13 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../middleware/auth";
 import { paymentService } from "./paymentService";
+import { PayRexProcessor } from "./payrex/PayRexProcessor";
 import {
   CreatePaymentIntentDtoType,
   ConfirmPaymentDtoType,
   RefundPaymentDtoType,
   PaymentIntentIdParamDtoType,
+  CreateCheckoutSessionDtoType,
 } from "../../dtos/paymentDto";
 import { query } from "../../models/databaseModel";
 import { NotFoundError } from "../../errors/NotFoundError";
@@ -64,7 +66,7 @@ async function createPaymentIntent(req: AuthenticatedRequest, res: Response) {
   // Update order with payment intent ID
   const updateOrderQuery = `
     UPDATE orders
-    SET stripe_payment_intent_id = $1
+    SET payment_intent_id = $1
     WHERE id = $2
   `;
   await query(updateOrderQuery, [paymentIntent.paymentIntentId, body.order_id]);
@@ -85,9 +87,9 @@ async function confirmPayment(req: AuthenticatedRequest, res: Response) {
 
   // Verify payment intent exists and get order info
   const orderQuery = `
-    SELECT id, user_id, stripe_payment_intent_id
+    SELECT id, user_id, payment_intent_id
     FROM orders
-    WHERE stripe_payment_intent_id = $1
+    WHERE payment_intent_id = $1
   `;
   const orderResult = await query(orderQuery, [body.payment_intent_id]);
 
@@ -144,7 +146,7 @@ async function getPaymentIntentStatus(req: AuthenticatedRequest, res: Response) 
   const orderQuery = `
     SELECT id, user_id
     FROM orders
-    WHERE stripe_payment_intent_id = $1
+    WHERE payment_intent_id = $1
   `;
   const orderResult = await query(orderQuery, [params.paymentIntentId]);
 
@@ -188,7 +190,7 @@ async function cancelPaymentIntent(req: AuthenticatedRequest, res: Response) {
   const orderQuery = `
     SELECT id, user_id, status
     FROM orders
-    WHERE stripe_payment_intent_id = $1
+    WHERE payment_intent_id = $1
   `;
   const orderResult = await query(orderQuery, [params.paymentIntentId]);
 
@@ -241,7 +243,7 @@ async function refundPayment(req: AuthenticatedRequest, res: Response) {
   const orderQuery = `
     SELECT id, user_id, total_amount
     FROM orders
-    WHERE stripe_payment_intent_id = $1
+    WHERE payment_intent_id = $1
   `;
   const orderResult = await query(orderQuery, [body.payment_intent_id]);
 
@@ -286,12 +288,77 @@ async function refundPayment(req: AuthenticatedRequest, res: Response) {
   res.json(result);
 }
 
+/**
+ * Create a PayRex Checkout session
+ */
+async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
+  if (!req.user?.sub) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
+  const body = res.locals.body as CreateCheckoutSessionDtoType;
+
+  // Verify order exists and belongs to user
+  const orderQuery = `
+    SELECT id, user_id, total_amount, status
+    FROM orders
+    WHERE id = $1
+  `;
+  const orderResult = await query(orderQuery, [body.order_id]);
+
+  if (orderResult.rows.length === 0) {
+    throw new NotFoundError(`Order with id ${body.order_id} not found`);
+  }
+
+  const order = orderResult.rows[0];
+
+  // Get user ID from database
+  const userId = await getUserIdByCognitoSub(req.user.sub);
+
+  // Verify order belongs to user (unless admin)
+  const isAdmin = req.user["cognito:groups"]?.includes("admin") || req.user["cognito:groups"]?.includes("superadmin");
+  if (!isAdmin && order.user_id !== userId) {
+    res.status(403).json({ message: "Forbidden - Order does not belong to user" });
+    return;
+  }
+
+  // Convert amount to cents (smallest currency unit)
+  const amountInCents = Math.round(order.total_amount * 100);
+
+  // Get PayRex processor instance
+  const payrexProcessor = paymentService.getProcessorInstance("payrex") as PayRexProcessor;
+  if (!payrexProcessor) {
+    throw new Error("PayRex processor not available");
+  }
+
+  // Determine success and cancel URLs
+  const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const successUrl = body.success_url || `${baseUrl}/checkout/return?order_id=${body.order_id}&status=success`;
+  const cancelUrl = body.cancel_url || `${baseUrl}/checkout?order_id=${body.order_id}&status=canceled`;
+
+  // Create checkout session
+  const checkoutSession = await payrexProcessor.createCheckoutSession({
+    amount: amountInCents,
+    currency: "usd",
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    orderId: body.order_id,
+    metadata: {
+      user_id: userId.toString(),
+    },
+  });
+
+  res.status(201).json(checkoutSession);
+}
+
 export default {
   createPaymentIntent,
   confirmPayment,
   getPaymentIntentStatus,
   cancelPaymentIntent,
   refundPayment,
+  createCheckoutSession,
 };
 
 

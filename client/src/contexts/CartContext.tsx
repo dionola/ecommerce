@@ -4,6 +4,7 @@ import * as guestCartService from '../services/guestCart';
 import { useAuth } from './AuthContext'
 import { getProduct } from '../services/products';
 import type { CartDtoType, CartItemDtoType, GuestCartType } from '../types/cart';
+import { dismissToastsByTitle } from '../components/ui/toaster';
 
 // Union type for cart - can be either authenticated cart or guest cart
 type CartUnion = CartDtoType | (GuestCartType & { isGuest: true });

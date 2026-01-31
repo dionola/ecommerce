@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import {
   signUp as authSignUp,
   signIn as authSignIn,
+  signInWithGoogle as authSignInWithGoogle,
   signOut as authSignOut,
   confirmSignUp as authConfirmSignUp,
   resendConfirmationCode as authResendConfirmationCode,
@@ -16,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   user: { email: string; groups?: string[] } | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string, name?: string) => Promise<void>;
   confirmSignUp: (email: string, code: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -85,6 +87,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   /**
+   * Google sign in handler
+   * Opens Google OAuth in a new tab and waits for callback
+   */
+  const handleSignInWithGoogle = async (): Promise<void> => {
+    try {
+      await authSignInWithGoogle();
+      // Small delay to ensure token is stored
+      await new Promise(resolve => setTimeout(resolve, 100));
+      // Refresh auth state after successful sign in
+      await refreshAuthState();
+    } catch (error) {
+      // Error is already handled in the auth service
+      throw error;
+    }
+  };
+
+  /**
    * Sign up handler
    */
   const handleSignUp = async (email: string, password: string, name?: string): Promise<void> => {
@@ -133,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         user,
         signIn: handleSignIn,
+        signInWithGoogle: handleSignInWithGoogle,
         signUp: handleSignUp,
         confirmSignUp: handleConfirmSignUp,
         signOut: handleSignOut,

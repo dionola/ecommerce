@@ -4,7 +4,7 @@
  */
 
 import { IPaymentProcessor } from "./PaymentProcessor";
-import { StripeProcessor } from "./stripe/StripeProcessor";
+import { PayRexProcessor } from "./payrex/PayRexProcessor";
 import {
   PaymentProcessorType,
   PaymentIntentRequest,
@@ -18,15 +18,11 @@ import { logger } from "../../utils/logger";
 
 class PaymentService {
   private processors: Map<PaymentProcessorType, IPaymentProcessor> = new Map();
-  private defaultProcessor: PaymentProcessorType = "stripe";
+  private defaultProcessor: PaymentProcessorType = "payrex";
 
   constructor() {
     // Initialize processors
-    this.processors.set("stripe", new StripeProcessor());
-    
-    // TODO: Add local processors when implemented
-    // this.processors.set("local1", new Local1Processor());
-    // this.processors.set("local2", new Local2Processor());
+    this.processors.set("payrex", new PayRexProcessor());
     
     logger.info("PaymentService initialized", {
       availableProcessors: Array.from(this.processors.keys()),
@@ -46,6 +42,13 @@ class PaymentService {
     }
 
     return processor;
+  }
+
+  /**
+   * Get processor instance by type (public method for accessing specific processor implementations)
+   */
+  getProcessorInstance(type?: PaymentProcessorType): IPaymentProcessor {
+    return this.getProcessor(type);
   }
 
   /**
@@ -142,10 +145,15 @@ class PaymentService {
     this.defaultProcessor = type;
     logger.info("Default payment processor changed", { processor: type });
   }
+
 }
 
 // Export singleton instance
 export const paymentService = new PaymentService();
+
+
+
+
 
 
 

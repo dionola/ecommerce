@@ -87,9 +87,11 @@ export function Navbar() {
             <div className="relative" ref={userDropdownRef}>
               <button 
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)} 
-                className="p-2 hover:bg-secondary transition-colors rounded-full"
+                className="p-2 hover:bg-secondary transition-colors rounded-full relative"
+                title={user?.email || "User account"}
               >
                 <User className="w-5 h-5" />
+                <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-background" title="Signed in" />
               </button>
               {isUserDropdownOpen && (
                 <div className="absolute top-full right-0 mt-2 bg-background border border-border shadow-lg min-w-[240px] z-50 rounded-md">
@@ -205,8 +207,13 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            <button onClick={() => setIsAuthOpen(true)} className="p-2 hover:bg-secondary transition-colors rounded-full">
-              <User className="w-5 h-5" />
+            <button 
+              onClick={() => setIsAuthOpen(true)} 
+              className="p-2 hover:bg-secondary transition-colors rounded-full relative"
+              title="Sign in"
+            >
+              <User className="w-5 h-5 opacity-50" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-gray-400 rounded-full border-2 border-background" title="Not signed in" />
             </button>
           )}
           <button

@@ -47,3 +47,7 @@ export default { getPromos, getPromoById, createPromo, updatePromo, deletePromo 
 
 
 
+
+
+
+

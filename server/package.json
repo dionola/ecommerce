@@ -26,6 +26,7 @@
     "@tsconfig/node22": "^22.0.5",
     "aws-jwt-verify": "^5.1.1",
     "axios": "^1.13.2",
+    "google-auth-library": "^9.0.0",
     "csv-parse": "^6.1.0",
     "dotenv": "^17.2.3",
     "cors": "^2.8.5",

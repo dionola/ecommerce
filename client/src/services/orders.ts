@@ -18,7 +18,7 @@ export interface Order {
   total_amount: number;
   status: string;
   promo_id: number | null;
-  stripe_payment_intent_id: string | null;
+  payment_intent_id: string | null;
   shipping_address: Record<string, unknown> | null;
   created_at: string;
   items: OrderItem[];
@@ -56,7 +56,8 @@ export interface CreateOrderData {
   promo_id?: number | null;
   promo_code?: string;
   create_payment_intent?: boolean;
-  payment_processor?: 'stripe' | 'local1' | 'local2';
+  payment_processor?: 'payrex';
+  payment_method?: 'elements' | 'checkout';
 }
 
 export async function createOrder(data: CreateOrderData): Promise<Order> {
@@ -64,8 +65,22 @@ export async function createOrder(data: CreateOrderData): Promise<Order> {
   return response.data;
 }
 
-export async function updateOrder(id: number, data: { status?: string; stripe_payment_intent_id?: string | null }): Promise<Order> {
+export async function updateOrder(id: number, data: { status?: string; payment_intent_id?: string | null }): Promise<Order> {
   const response = await api.patch<Order>(`/orders/${id}`, data);
+  return response.data;
+}
+
+export interface CheckoutSessionResponse {
+  checkoutUrl: string;
+  sessionId: string;
+}
+
+export async function createCheckoutSession(orderId: number, successUrl?: string, cancelUrl?: string): Promise<CheckoutSessionResponse> {
+  const response = await api.post<CheckoutSessionResponse>('/payments/checkout-session', {
+    order_id: orderId,
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+  });
   return response.data;
 }
 

@@ -6,8 +6,9 @@ import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
 import { mapProductDtoToProduct } from "../types/product"
-import { toast } from "./ui/toaster"
+import { toast, dismissToastsByTitle } from "./ui/toaster"
 import type { CartDtoType, GuestCartType } from "../types/cart"
+import { useEffect } from "react"
 
 export function CartSheet({
   isOpen,
@@ -19,6 +20,13 @@ export function CartSheet({
   const { cart, updateItem, removeItem } = useCart()
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
+
+  // Dismiss "Added to cart" toasts when cart sheet opens
+  useEffect(() => {
+    if (isOpen) {
+      dismissToastsByTitle("Added to cart")
+    }
+  }, [isOpen])
 
   const handleCheckout = () => {
     if (!isAuthenticated) {

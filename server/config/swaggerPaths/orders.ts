@@ -64,7 +64,7 @@ export const ordersDefinition = {
                   total_amount: 99.99,
                   status: "pending",
                   promo_id: null,
-                  stripe_payment_intent_id: null,
+                  payment_intent_id: null,
                   shipping_address: { street: "123 Main St", city: "City", zip: "12345" },
                   created_at: "2024-01-01T00:00:00Z",
                   items: [

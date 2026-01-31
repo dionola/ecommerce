@@ -28,7 +28,7 @@ To test create, update, and delete operations in Swagger UI:
     },
     servers: [
       {
-        url: "http://localhost:3000",
+        url: process.env.API_URL || `http://localhost:${process.env.PORT || "3001"}`,
         description: "Development server",
       },
     ],
@@ -489,10 +489,10 @@ To test create, update, and delete operations in Swagger UI:
               nullable: true,
               description: "Applied promo code ID",
             },
-            stripe_payment_intent_id: {
+            payment_intent_id: {
               type: "string",
               nullable: true,
-              description: "Stripe payment intent ID",
+              description: "Payment intent ID",
             },
             shipping_address: {
               type: "object",
@@ -537,10 +537,10 @@ To test create, update, and delete operations in Swagger UI:
               type: "string",
               description: "Order status",
             },
-            stripe_payment_intent_id: {
+            payment_intent_id: {
               type: "string",
               nullable: true,
-              description: "Stripe payment intent ID",
+              description: "Payment intent ID",
             },
           },
           description: "At least one field must be provided",

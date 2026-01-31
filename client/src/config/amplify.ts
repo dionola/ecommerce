@@ -45,6 +45,9 @@ validateCognitoConfig();
  * - Email-based authentication
  * - Code-based email verification
  * - Automatic token refresh
+ * 
+ * Note: Google sign-in is handled directly via Google's JavaScript SDK,
+ * not through Cognito's Hosted UI
  */
 Amplify.configure({
   Auth: {

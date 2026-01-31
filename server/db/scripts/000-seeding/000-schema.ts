@@ -44,7 +44,7 @@ const createTables = async () => {
 
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        cognito_sub UUID UNIQUE NOT NULL,
+        cognito_sub VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         full_name VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -88,7 +88,7 @@ const createTables = async () => {
         total_amount DECIMAL(12, 2) NOT NULL,
         status VARCHAR(20) DEFAULT 'pending',
         promo_id INTEGER REFERENCES promos(id) ON DELETE SET NULL,
-        stripe_payment_intent_id VARCHAR(255),
+        payment_intent_id VARCHAR(255),
         shipping_address JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

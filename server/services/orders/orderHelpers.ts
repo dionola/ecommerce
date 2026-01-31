@@ -9,32 +9,12 @@ import { CartDtoType } from "../../dtos/cartDto";
 
 /**
  * Validates and applies promo code to calculate discount
- * Also handles test promo codes that set order status
  */
 export async function applyPromoDiscount(
   subtotal: number, 
   promoId: number | null,
   promoCode: string | null | undefined
-): Promise<{ discount: number; total: number; promoId: number | null; testStatus?: string }> {
-  // Handle test promo codes (e.g., TESTDELIVERED, TESTCOMPLETED)
-  if (promoCode && promoCode.toUpperCase().startsWith('TEST')) {
-    const statusSuffix = promoCode.toUpperCase().replace('TEST', '');
-    const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
-    
-    if (validStatuses.includes(statusSuffix)) {
-      // Test promo code - set total to 0 and return status to set
-      return { 
-        discount: subtotal, 
-        total: 0, 
-        promoId: null,
-        testStatus: statusSuffix.toLowerCase()
-      };
-    } else {
-      // Invalid test promo code suffix - throw error
-      throw new ValidationError(`Invalid test promo code. Valid suffixes are: ${validStatuses.join(', ')}`);
-    }
-  }
-
+): Promise<{ discount: number; total: number; promoId: number | null }> {
   // Look up promo by code if provided
   let finalPromoId = promoId;
   if (promoCode && !promoId) {
@@ -134,7 +114,7 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
       o.total_amount,
       o.status,
       o.promo_id,
-      o.stripe_payment_intent_id,
+      o.payment_intent_id,
       o.shipping_address,
       o.created_at,
       COALESCE(
@@ -174,7 +154,7 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
     LEFT JOIN order_items oi ON o.id = oi.order_id
     LEFT JOIN products p ON oi.product_id = p.id
     ${whereClause}
-    GROUP BY o.id, o.user_id, o.total_amount, o.status, o.promo_id, o.stripe_payment_intent_id, o.shipping_address, o.created_at
+    GROUP BY o.id, o.user_id, o.total_amount, o.status, o.promo_id, o.payment_intent_id, o.shipping_address, o.created_at
   `;
   
   const result = await query(orderQuery, params);
@@ -193,7 +173,7 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
     total_amount: orderData.total_amount,
     status: orderData.status,
     promo_id: orderData.promo_id,
-    stripe_payment_intent_id: orderData.stripe_payment_intent_id,
+    payment_intent_id: orderData.payment_intent_id,
     shipping_address: orderData.shipping_address,
     created_at: orderData.created_at,
     items: items.map((item: any) => ({

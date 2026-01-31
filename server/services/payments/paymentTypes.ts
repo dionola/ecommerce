@@ -2,13 +2,16 @@
  * Payment types and interfaces
  */
 
-export type PaymentProcessorType = "stripe" | "local1" | "local2";
+export type PaymentProcessorType = "payrex";
+
+export type PaymentMethod = "elements" | "checkout";
 
 export interface PaymentIntentRequest {
   amount: number; // Amount in smallest currency unit (cents for USD)
   currency: string; // e.g., "usd"
   orderId: number;
   metadata?: Record<string, string>;
+  paymentMethod?: PaymentMethod;
 }
 
 export interface PaymentIntentResponse {
@@ -46,6 +49,10 @@ export interface RefundResponse {
   status: "succeeded" | "pending" | "failed";
   paymentIntentId: string;
 }
+
+
+
+
 
 
 

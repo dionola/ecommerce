@@ -3,7 +3,7 @@ import { PaymentProcessorType } from "../services/payments/paymentTypes";
 
 export const CreatePaymentIntentDto = z.object({
   order_id: z.coerce.number().int().positive(),
-  processor: z.enum(["stripe", "local1", "local2"]).optional(),
+  processor: z.enum(["payrex"]).optional(),
 });
 
 export type CreatePaymentIntentDtoType = z.infer<typeof CreatePaymentIntentDto>;
@@ -27,7 +27,7 @@ export type PaymentIntentResponseDtoType = z.infer<typeof PaymentIntentResponseD
 export const ConfirmPaymentDto = z.object({
   payment_intent_id: z.string(),
   payment_method_id: z.string().optional(),
-  processor: z.enum(["stripe", "local1", "local2"]).optional(),
+  processor: z.enum(["payrex"]).optional(),
 });
 
 export type ConfirmPaymentDtoType = z.infer<typeof ConfirmPaymentDto>;
@@ -56,7 +56,7 @@ export const RefundPaymentDto = z.object({
   payment_intent_id: z.string(),
   amount: z.coerce.number().positive().optional(),
   reason: z.string().optional(),
-  processor: z.enum(["stripe", "local1", "local2"]).optional(),
+  processor: z.enum(["payrex"]).optional(),
 });
 
 export type RefundPaymentDtoType = z.infer<typeof RefundPaymentDto>;
@@ -69,6 +69,25 @@ export const RefundResponseDto = z.object({
 });
 
 export type RefundResponseDtoType = z.infer<typeof RefundResponseDto>;
+
+export const CreateCheckoutSessionDto = z.object({
+  order_id: z.coerce.number().int().positive(),
+  success_url: z.string().url().optional(),
+  cancel_url: z.string().url().optional(),
+});
+
+export type CreateCheckoutSessionDtoType = z.infer<typeof CreateCheckoutSessionDto>;
+
+export const CheckoutSessionResponseDto = z.object({
+  checkoutUrl: z.string().url(),
+  sessionId: z.string(),
+});
+
+export type CheckoutSessionResponseDtoType = z.infer<typeof CheckoutSessionResponseDto>;
+
+
+
+
 
 
 

@@ -7,6 +7,7 @@ import {
   ConfirmPaymentDto,
   RefundPaymentDto,
   PaymentIntentIdParamDto,
+  CreateCheckoutSessionDto,
 } from "../dtos/paymentDto";
 
 const router = Router();
@@ -46,7 +47,18 @@ router.post(
   paymentController.refundPayment
 );
 
+router.post(
+  "/checkout-session",
+  authenticate,
+  validateRequestBody(CreateCheckoutSessionDto),
+  paymentController.createCheckoutSession
+);
+
 export default router;
+
+
+
+
 
 
 

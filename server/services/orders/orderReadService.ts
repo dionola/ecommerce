@@ -80,7 +80,7 @@ export async function getOrders(filters: GetOrdersQueryParamsDtoType, userId?: n
       o.total_amount,
       o.status,
       o.promo_id,
-      o.stripe_payment_intent_id,
+      o.payment_intent_id,
       o.shipping_address,
       o.created_at
     FROM orders o
@@ -102,6 +102,10 @@ export async function getOrders(filters: GetOrdersQueryParamsDtoType, userId?: n
 export async function getOrderById(orderId: number, userId?: number) {
   return fetchOrderById(orderId, userId);
 }
+
+
+
+
 
 
 

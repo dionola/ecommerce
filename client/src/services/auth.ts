@@ -146,9 +146,14 @@ export async function signIn(params: SignInParams): Promise<void> {
  */
 export async function signOut(): Promise<void> {
   try {
+    // Clear Google token if present
+    sessionStorage.removeItem('google_id_token');
+    
+    // Sign out from Amplify (Cognito)
     await amplifySignOut();
-  } catch (error: any) {
-    throw new Error(error.message || 'Sign out failed');
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Sign out failed';
+    throw new Error(errorMessage);
   }
 }
 
@@ -179,6 +184,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
  */
 export async function getAuthToken(): Promise<string | null> {
   try {
+    // Check for Google token first (stored in sessionStorage)
+    const googleToken = sessionStorage.getItem('google_id_token');
+    if (googleToken) {
+      return googleToken;
+    }
+
+    // Otherwise, try to get Cognito token from Amplify
     const session = await fetchAuthSession();
     return session.tokens?.idToken?.toString() || null;
   } catch {
@@ -201,12 +213,145 @@ export async function getUserInfo(): Promise<{ email: string; groups?: string[] 
     // Decode JWT token (base64 decode the payload)
     const payload = JSON.parse(atob(token.split('.')[1]));
     
-    return {
-      email: payload.email || payload['cognito:username'],
-      groups: payload['cognito:groups'],
-    };
+    // Check if it's a Google token or Cognito token
+    if (payload.iss && payload.iss.includes('google')) {
+      // Google token
+      return {
+        email: payload.email || '',
+        groups: undefined, // Google users don't have Cognito groups
+      };
+    } else {
+      // Cognito token
+      return {
+        email: payload.email || payload['cognito:username'],
+        groups: payload['cognito:groups'],
+      };
+    }
   } catch {
     return null;
   }
+}
+
+/**
+ * Google Identity Services types
+ */
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential: string }) => void;
+          }) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
+
+/**
+ * Load Google Identity Services script
+ */
+function loadGoogleScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.id) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Google Identity Services'));
+    document.head.appendChild(script);
+  });
+}
+
+/**
+ * Sign in with Google using OAuth redirect flow (opens in new tab)
+ * 
+ * All authentication happens on the client side. The server only verifies JWT tokens.
+ * This redirects to Google OAuth and handles the callback to get the ID token.
+ * @throws Error if sign in fails
+ */
+export async function signInWithGoogle(): Promise<void> {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  if (!googleClientId) {
+    throw new Error('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your .env file.');
+  }
+
+  // Build redirect URI - this page will handle the callback
+  const redirectUri = `${window.location.origin}/auth/google/callback`;
+  
+  // Log the redirect URI for debugging
+  console.log('Google OAuth redirect URI:', redirectUri);
+  console.log('Make sure this EXACT URI is added to Google Cloud Console:');
+  console.log('  - Go to: APIs & Services → Credentials → Your OAuth Client');
+  console.log('  - Under "Authorized redirect URIs", add:', redirectUri);
+  
+  // Build Google OAuth URL
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  authUrl.searchParams.set('client_id', googleClientId);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'id_token');
+  authUrl.searchParams.set('scope', 'openid email profile');
+  authUrl.searchParams.set('nonce', Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+  
+  // Open in new tab
+  const authWindow = window.open(
+    authUrl.toString(),
+    'google-auth',
+    'width=500,height=600,scrollbars=yes,resizable=yes'
+  );
+
+  if (!authWindow) {
+    throw new Error('Failed to open Google sign-in window. Please allow popups for this site.');
+  }
+
+  // Wait for the callback to complete
+  // The callback page will post a message back to this window
+  return new Promise<void>((resolve, reject) => {
+    const messageListener = (event: MessageEvent) => {
+      // Verify origin for security
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+
+      if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+        const token = event.data.token;
+        if (token) {
+          // Store Google token in sessionStorage
+          sessionStorage.setItem('google_id_token', token);
+          window.removeEventListener('message', messageListener);
+          authWindow.close();
+          resolve();
+        } else {
+          window.removeEventListener('message', messageListener);
+          authWindow.close();
+          reject(new Error('No token received from Google'));
+        }
+      } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+        window.removeEventListener('message', messageListener);
+        authWindow.close();
+        reject(new Error(event.data.error || 'Google sign-in failed'));
+      }
+    };
+
+    window.addEventListener('message', messageListener);
+
+    // Handle window closed manually
+    const checkClosed = setInterval(() => {
+      if (authWindow.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', messageListener);
+        reject(new Error('Google sign-in was cancelled'));
+      }
+    }, 1000);
+  });
 }
 

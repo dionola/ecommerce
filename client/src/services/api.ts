@@ -1,6 +1,6 @@
 import { getAuthToken } from './auth';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export interface ApiError {
   message: string;
@@ -13,7 +13,7 @@ async function apiRequest<T>(
 ): Promise<T> {
   // Get fresh token from auth service (Amplify handles refresh automatically)
   const token = await getAuthToken();
-  
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -40,7 +40,7 @@ async function apiRequest<T>(
           ...options,
           headers,
         });
-        
+
         if (retryResponse.ok) {
           if (retryResponse.status === 204) {
             return {} as T;
@@ -51,7 +51,7 @@ async function apiRequest<T>(
     } catch {
       // Refresh failed, user needs to re-login
     }
-    
+
     // If retry failed, throw authentication error
     const error: ApiError = {
       message: 'Authentication failed. Please sign in again.',
@@ -65,14 +65,14 @@ async function apiRequest<T>(
       message: `API Error: ${response.statusText}`,
       status: response.status,
     };
-    
+
     try {
       const errorData = await response.json();
       error.message = errorData.message || error.message;
     } catch {
       // If response is not JSON, use default error message
     }
-    
+
     throw error;
   }
 

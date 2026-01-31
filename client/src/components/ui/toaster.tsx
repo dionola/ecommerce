@@ -35,6 +35,23 @@ export function dismissToast(id: string) {
   }
 }
 
+export function dismissAllToasts() {
+  toasts.length = 0
+  listeners.forEach((listener) => listener())
+}
+
+export function dismissToastsByTitle(title: string) {
+  const initialLength = toasts.length
+  for (let i = toasts.length - 1; i >= 0; i--) {
+    if (toasts[i].title === title) {
+      toasts.splice(i, 1)
+    }
+  }
+  if (toasts.length !== initialLength) {
+    listeners.forEach((listener) => listener())
+  }
+}
+
 export function Toaster() {
   const [, forceUpdate] = useState(0)
 
@@ -52,7 +69,7 @@ export function Toaster() {
   if (typeof window === "undefined") return null
 
   return createPortal(
-    <div className="pointer-events-none fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]">
+    <div className="pointer-events-none fixed top-20 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-auto sm:right-0 sm:top-20 sm:flex-col md:max-w-[320px]">
       <div className="pointer-events-auto flex flex-col gap-2">
         {toasts.map((toastData) => (
           <Toast
@@ -66,6 +83,10 @@ export function Toaster() {
     document.body
   )
 }
+
+
+
+
 
 
 
