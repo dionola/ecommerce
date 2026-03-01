@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navbar } from '../../components/Navbar';
-import { Footer } from '../../components/Footer';
 import { getManufacturers, createManufacturer, updateManufacturer, deleteManufacturer } from '../../services/admin';
 import type { Manufacturer, CreateManufacturerData } from '../../services/admin';
 import { Building2, Plus, Edit, Trash2 } from 'lucide-react';
@@ -74,69 +72,63 @@ export default function AdminManufacturers() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 pt-20">
-        <div className="max-w-[1400px] mx-auto px-6 py-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Manufacturers</h1>
-              <p className="text-muted-foreground">Manage product manufacturers</p>
-            </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Manufacturer
-            </Button>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">Loading...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {manufacturers.map((manufacturer) => (
-                <div key={manufacturer.id} className="border border-border rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Building2 className="w-5 h-5" />
-                    <h3 className="font-semibold">{manufacturer.name}</h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingManufacturer(manufacturer)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(manufacturer.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isCreateModalOpen && (
-            <ManufacturerModal
-              onClose={() => setIsCreateModalOpen(false)}
-              onSave={handleCreate}
-            />
-          )}
-
-          {editingManufacturer && (
-            <ManufacturerModal
-              manufacturer={editingManufacturer}
-              onClose={() => setEditingManufacturer(null)}
-              onSave={(data) => handleUpdate(editingManufacturer.id, data)}
-            />
-          )}
+    <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Manufacturers</h1>
+          <p className="text-muted-foreground">Manage product manufacturers</p>
         </div>
-      </main>
-      <Footer />
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Manufacturer
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {manufacturers.map((manufacturer) => (
+            <div key={manufacturer.id} className="border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="w-5 h-5" />
+                <h3 className="font-semibold">{manufacturer.name}</h3>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingManufacturer(manufacturer)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(manufacturer.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isCreateModalOpen && (
+        <ManufacturerModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreate}
+        />
+      )}
+
+      {editingManufacturer && (
+        <ManufacturerModal
+          manufacturer={editingManufacturer}
+          onClose={() => setEditingManufacturer(null)}
+          onSave={(data) => handleUpdate(editingManufacturer.id, data)}
+        />
+      )}
     </div>
   );
 }

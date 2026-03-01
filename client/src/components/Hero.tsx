@@ -34,25 +34,21 @@ export function Hero() {
   }, []);
 
   const handleButtonClick = () => {
-    if (banner?.category) {
-      navigate(`/?category=${encodeURIComponent(banner.category)}`);
-      // Scroll to product grid after navigation
-      setTimeout(() => {
-        const productGrid = document.querySelector('[data-product-grid]') || document.querySelector('section.border-t.border-border');
-        if (productGrid) {
-          productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    } else {
-      navigate('/');
-      // Scroll to product grid
-      setTimeout(() => {
-        const productGrid = document.querySelector('[data-product-grid]') || document.querySelector('section.border-t.border-border');
-        if (productGrid) {
-          productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    }
+    const targetPath = banner?.category
+      ? `/?category=${encodeURIComponent(banner.category)}`
+      : '/';
+
+    navigate(targetPath);
+
+    // Instead of a hacky timeout, we can use a more robust way to ensure the scroll happens
+    // after the navigation has completed and the DOM is ready.
+    requestAnimationFrame(() => {
+      const productGrid = document.querySelector('[data-product-grid]') ||
+        document.querySelector('section.border-t.border-border');
+      if (productGrid) {
+        productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   };
 
   if (loading || !banner) {

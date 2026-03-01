@@ -56,8 +56,7 @@ export interface CreateOrderData {
   promo_id?: number | null;
   promo_code?: string;
   create_payment_intent?: boolean;
-  payment_processor?: 'payrex';
-  payment_method?: 'elements' | 'checkout';
+  payment_processor?: 'stripe';
 }
 
 export async function createOrder(data: CreateOrderData): Promise<Order> {
@@ -88,3 +87,12 @@ export async function deleteOrder(id: number): Promise<void> {
   await api.delete(`/orders/${id}`);
 }
 
+export async function verifyCheckoutSession(sessionId: string): Promise<{ status: string; orderId?: number; message?: string }> {
+  try {
+    const response = await api.get<{ status: string; orderId?: number; message?: string }>(`/payments/checkout-session/${sessionId}/verify`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to verify checkout session:", error);
+    throw error;
+  }
+}

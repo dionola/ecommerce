@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Check for existing session on mount and set up listener
+  // Check for existing session on mount
   useEffect(() => {
     const checkSession = async () => {
       await refreshAuthState();
@@ -64,15 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     checkSession();
-
-    // Set up interval to periodically check auth state (in case of token refresh)
-    const interval = setInterval(() => {
-      refreshAuthState().catch(() => {
-        // Silently handle errors - user might have signed out
-      });
-    }, 60000); // Check every minute
-
-    return () => clearInterval(interval);
   }, []);
 
   /**

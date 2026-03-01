@@ -1,24 +1,14 @@
 import fs from 'fs';
-import pg from 'pg';
 import { parse } from 'csv-parse';
 import 'dotenv/config';
-
-const { Pool } = pg;
-
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+import { pool } from '../../../src/config/database';
 
 // Helper to strip brackets, quotes, and whitespace
 const sanitize = (str: string) => str.replace(/[\[\]"']/g, '').trim();
 
 async function importCsv(filePath: string) {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
     const parser = fs.createReadStream(filePath).pipe(
@@ -40,13 +30,13 @@ async function importCsv(filePath: string) {
       const category = record.category || record.Category || record.CATEGORY || null;
       // The CSV has a typo: "county_of_origin" instead of "country_of_origin"
       const countryOfOrigin = record.county_of_origin || record.country_of_origin || null;
-      const formattedOrigin = countryOfOrigin 
+      const formattedOrigin = countryOfOrigin
         ? countryOfOrigin.trim()
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ')
+          .split(' ')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ')
         : null;
-      
+
       const productRes = await client.query(
         `INSERT INTO products (name, description, base_price, country_of_origin, stock_quantity, manufacturer_id, category)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,

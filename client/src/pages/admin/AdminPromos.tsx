@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navbar } from '../../components/Navbar';
-import { Footer } from '../../components/Footer';
 import { getPromos, createPromo, updatePromo, deletePromo } from '../../services/admin';
 import type { Promo, CreatePromoData } from '../../services/admin';
 import { Tag, Plus, Edit, Trash2 } from 'lucide-react';
@@ -92,77 +90,71 @@ export default function AdminPromos() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 pt-20">
-        <div className="max-w-[1400px] mx-auto px-6 py-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Promos</h1>
-              <p className="text-muted-foreground">Manage promo codes</p>
-            </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Promo
-            </Button>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">Loading...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {promos.map((promo) => (
-                <div key={promo.id} className="border border-border rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Tag className="w-5 h-5" />
-                    <h3 className="font-semibold">{promo.code}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {promo.discount_type === 'percentage' ? `${promo.discount_value}%` : `$${promo.discount_value}`} off
-                  </p>
-                  {promo.active_until && (
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Expires: {new Date(promo.active_until).toLocaleDateString()}
-                    </p>
-                  )}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingPromo(promo)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(promo.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isCreateModalOpen && (
-            <PromoModal
-              onClose={() => setIsCreateModalOpen(false)}
-              onSave={handleCreate}
-            />
-          )}
-
-          {editingPromo && (
-            <PromoModal
-              promo={editingPromo}
-              onClose={() => setEditingPromo(null)}
-              onSave={(data) => handleUpdate(editingPromo.id, data)}
-            />
-          )}
+    <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Promos</h1>
+          <p className="text-muted-foreground">Manage promo codes</p>
         </div>
-      </main>
-      <Footer />
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Promo
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {promos.map((promo) => (
+            <div key={promo.id} className="border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Tag className="w-5 h-5" />
+                <h3 className="font-semibold">{promo.code}</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">
+                {promo.discount_type === 'percentage' ? `${promo.discount_value}%` : `$${promo.discount_value}`} off
+              </p>
+              {promo.active_until && (
+                <p className="text-xs text-muted-foreground mb-4">
+                  Expires: {new Date(promo.active_until).toLocaleDateString()}
+                </p>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingPromo(promo)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(promo.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isCreateModalOpen && (
+        <PromoModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreate}
+        />
+      )}
+
+      {editingPromo && (
+        <PromoModal
+          promo={editingPromo}
+          onClose={() => setEditingPromo(null)}
+          onSave={(data) => handleUpdate(editingPromo.id, data)}
+        />
+      )}
     </div>
   );
 }

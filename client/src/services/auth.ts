@@ -67,7 +67,7 @@ export async function signUp(params: SignUpParams): Promise<SignUpResult> {
     return {
       userId: result.userId,
       nextStep: {
-        signUpStep: result.nextStep.signUpStep || 'CONFIRM_SIGN_UP',
+        signUpStep: (result.nextStep as any)?.signUpStep || 'CONFIRM_SIGN_UP',
       },
     };
   } catch (error: any) {
@@ -148,7 +148,7 @@ export async function signOut(): Promise<void> {
   try {
     // Clear Google token if present
     sessionStorage.removeItem('google_id_token');
-    
+
     // Sign out from Amplify (Cognito)
     await amplifySignOut();
   } catch (error: unknown) {
@@ -210,9 +210,17 @@ export async function getUserInfo(): Promise<{ email: string; groups?: string[] 
       return null;
     }
 
-    // Decode JWT token (base64 decode the payload)
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    
+    // Decode JWT token (base64 decode the payload with UTF-8 support)
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+
     // Check if it's a Google token or Cognito token
     if (payload.iss && payload.iss.includes('google')) {
       // Google token
@@ -287,13 +295,14 @@ export async function signInWithGoogle(): Promise<void> {
 
   // Build redirect URI - this page will handle the callback
   const redirectUri = `${window.location.origin}/auth/google/callback`;
-  
-  // Log the redirect URI for debugging
-  console.log('Google OAuth redirect URI:', redirectUri);
-  console.log('Make sure this EXACT URI is added to Google Cloud Console:');
-  console.log('  - Go to: APIs & Services → Credentials → Your OAuth Client');
-  console.log('  - Under "Authorized redirect URIs", add:', redirectUri);
-  
+
+  if (import.meta.env.DEV) {
+    console.log('Google OAuth redirect URI:', redirectUri);
+    console.log('Make sure this EXACT URI is added to Google Cloud Console:');
+    console.log('  - Go to: APIs & Services → Credentials → Your OAuth Client');
+    console.log('  - Under "Authorized redirect URIs", add:', redirectUri);
+  }
+
   // Build Google OAuth URL
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   authUrl.searchParams.set('client_id', googleClientId);
@@ -301,7 +310,7 @@ export async function signInWithGoogle(): Promise<void> {
   authUrl.searchParams.set('response_type', 'id_token');
   authUrl.searchParams.set('scope', 'openid email profile');
   authUrl.searchParams.set('nonce', Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
-  
+
   // Open in new tab
   const authWindow = window.open(
     authUrl.toString(),

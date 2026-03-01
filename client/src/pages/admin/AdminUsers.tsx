@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { Navbar } from '../../components/Navbar';
-import { Footer } from '../../components/Footer';
 import { createUser } from '../../services/admin';
-import type { CreateUserData, CreateUserResponse } from '../../services/admin';
+import type { CreateUserData } from '../../services/admin';
 import { Users, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -16,38 +14,32 @@ export default function AdminUsers() {
   const isSuperadmin = user?.groups?.includes('superadmin');
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 pt-20">
-        <div className="max-w-[1400px] mx-auto px-6 py-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Users</h1>
-              <p className="text-muted-foreground">Create admin and superadmin users</p>
-            </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create User
-            </Button>
-          </div>
-
-          <div className="border border-border rounded-lg p-8 text-center">
-            <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              Use the "Create User" button to add new admin or superadmin users.
-              {!isSuperadmin && ' Note: Admins can only create admin users.'}
-            </p>
-          </div>
-
-          {isCreateModalOpen && (
-            <CreateUserModal
-              onClose={() => setIsCreateModalOpen(false)}
-              isSuperadmin={isSuperadmin || false}
-            />
-          )}
+    <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Users</h1>
+          <p className="text-muted-foreground">Create admin and superadmin users</p>
         </div>
-      </main>
-      <Footer />
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create User
+        </Button>
+      </div>
+
+      <div className="border border-border rounded-lg p-8 text-center">
+        <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+        <p className="text-muted-foreground">
+          Use the "Create User" button to add new admin or superadmin users.
+          {!isSuperadmin && ' Note: Admins can only create admin users.'}
+        </p>
+      </div>
+
+      {isCreateModalOpen && (
+        <CreateUserModal
+          onClose={() => setIsCreateModalOpen(false)}
+          isSuperadmin={isSuperadmin || false}
+        />
+      )}
     </div>
   );
 }

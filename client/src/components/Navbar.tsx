@@ -1,5 +1,5 @@
-import { Link, useLocation, useNavigate } from "react-router-dom"
-import { ShoppingCart, Menu, User, X, LayoutDashboard, ShoppingBag, Heart, Settings, Package, Tag, Building2, Users, HelpCircle, Info, Mail, Truck, RotateCcw } from "lucide-react"
+import { Link } from "react-router-dom"
+import { ShoppingCart, Menu, User, X, LayoutDashboard, ShoppingBag, Heart, Settings, Package, Tag, Building2, Users } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { CartSheet } from "./CartSheet"
 import { AuthModal } from "./AuthModal"
@@ -7,8 +7,6 @@ import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 
 export function Navbar() {
-  const location = useLocation()
-  const navigate = useNavigate()
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
@@ -42,27 +40,8 @@ export function Navbar() {
             Objekt
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            <Link 
-              to="/#collection" 
-              onClick={(e) => {
-                e.preventDefault()
-                if (location.pathname === '/') {
-                  // Already on home page, just scroll
-                  const element = document.getElementById('collection')
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
-                } else {
-                  // Navigate to home first, then scroll
-                  navigate('/#collection')
-                  setTimeout(() => {
-                    const element = document.getElementById('collection')
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }
-                  }, 100)
-                }
-              }}
+            <Link
+              to="/#collection"
               className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
             >
               Collection
@@ -85,8 +64,8 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           {isAuthenticated ? (
             <div className="relative" ref={userDropdownRef}>
-              <button 
-                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)} 
+              <button
+                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                 className="p-2 hover:bg-secondary transition-colors rounded-full relative"
                 title={user?.email || "User account"}
               >
@@ -106,7 +85,7 @@ export function Navbar() {
                         )}
                       </div>
                     )}
-                    
+
                     {/* Admin Menu Items */}
                     {(user?.groups?.includes('admin') || user?.groups?.includes('superadmin')) && (
                       <>
@@ -166,7 +145,7 @@ export function Navbar() {
                         <div className="border-t border-border my-1"></div>
                       </>
                     )}
-                    
+
                     {/* Regular User Menu Items */}
                     <Link
                       to="/orders"
@@ -207,8 +186,8 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            <button 
-              onClick={() => setIsAuthOpen(true)} 
+            <button
+              onClick={() => setIsAuthOpen(true)}
               className="p-2 hover:bg-secondary transition-colors rounded-full relative"
               title="Sign in"
             >
@@ -227,7 +206,7 @@ export function Navbar() {
               </span>
             )}
           </button>
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 hover:bg-secondary transition-colors rounded-full"
           >
@@ -239,55 +218,36 @@ export function Navbar() {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
           <div className="px-6 py-4 space-y-4">
-            <Link 
-              to="/#collection" 
-              onClick={(e) => {
-                setIsMobileMenuOpen(false)
-                e.preventDefault()
-                if (location.pathname === '/') {
-                  // Already on home page, just scroll
-                  const element = document.getElementById('collection')
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
-                } else {
-                  // Navigate to home first, then scroll
-                  navigate('/#collection')
-                  setTimeout(() => {
-                    const element = document.getElementById('collection')
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }
-                  }, 100)
-                }
-              }}
+            <Link
+              to="/#collection"
+              onClick={() => setIsMobileMenuOpen(false)}
               className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               Collection
             </Link>
-            <Link 
-              to="/about" 
+            <Link
+              to="/about"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               About
             </Link>
-            <Link 
-              to="/shipping" 
+            <Link
+              to="/shipping"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               Shipping
             </Link>
-            <Link 
-              to="/returns" 
+            <Link
+              to="/returns"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               Returns
             </Link>
-            <Link 
-              to="/contact" 
+            <Link
+              to="/contact"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >

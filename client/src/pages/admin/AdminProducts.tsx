@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Navbar } from '../../components/Navbar';
-import { Footer } from '../../components/Footer';
 import { getProducts } from '../../services/products';
-import type { ProductDtoType } from '../../services/products';
 import { createProduct, updateProduct, deleteProduct } from '../../services/admin';
-import type { AdminProduct, CreateProductData } from '../../services/admin';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import type { CreateProductData } from '../../services/admin';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import type { ProductDtoType } from '../../types/product';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -94,76 +92,70 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 pt-20">
-        <div className="max-w-[1400px] mx-auto px-6 py-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Products</h1>
-              <p className="text-muted-foreground">Manage your product catalog</p>
-            </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Button>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">Loading...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <div key={product.id} className="border border-border rounded-lg p-4">
-                  <div className="mb-4">
-                    {product.images[0] && (
-                      <img
-                        src={product.images[0].url}
-                        alt={product.name}
-                        className="w-full h-48 object-cover rounded"
-                      />
-                    )}
-                  </div>
-                  <h3 className="font-semibold mb-2">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">${product.base_price}</p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingProduct(product)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isCreateModalOpen && (
-            <ProductModal
-              onClose={() => setIsCreateModalOpen(false)}
-              onSave={handleCreate}
-            />
-          )}
-
-          {editingProduct && (
-            <ProductModal
-              product={editingProduct}
-              onClose={() => setEditingProduct(null)}
-              onSave={(data) => handleUpdate(editingProduct.id, data)}
-            />
-          )}
+    <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Products</h1>
+          <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
-      </main>
-      <Footer />
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Product
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <div key={product.id} className="border border-border rounded-lg p-4">
+              <div className="mb-4">
+                {product.images[0] && (
+                  <img
+                    src={product.images[0].url}
+                    alt={product.name}
+                    className="w-full h-48 object-cover rounded"
+                  />
+                )}
+              </div>
+              <h3 className="font-semibold mb-2">{product.name}</h3>
+              <p className="text-sm text-muted-foreground mb-4">${product.base_price}</p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingProduct(product)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(product.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isCreateModalOpen && (
+        <ProductModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreate}
+        />
+      )}
+
+      {editingProduct && (
+        <ProductModal
+          product={editingProduct}
+          onClose={() => setEditingProduct(null)}
+          onSave={(data) => handleUpdate(editingProduct.id, data)}
+        />
+      )}
     </div>
   );
 }
