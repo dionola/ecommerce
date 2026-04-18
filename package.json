@@ -1,15 +1,14 @@
 {
-  "name": "e_commerce_store",
-  "version": "1.0.0",
+  "name": "e-commerce-store",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "packageManager": "pnpm@10.27.0",
   "scripts": {
-    "dev": "concurrently -n \"client,server\" -c \"blue,green\" \"pnpm --dir client dev\" \"pnpm --dir server dev\"",
+    "build": "pnpm --dir client exec vite build",
+    "build:client": "pnpm --dir client exec vite build",
     "dev:client": "pnpm --dir client dev",
     "dev:server": "pnpm --dir server dev"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
-  },
-  "packageManager": "pnpm@10.27.0"
+  }
 }
-

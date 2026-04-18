@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { BannerDto, BannerDtoType, UpdateBannerDtoType, validateDto } from "../../dtos/bannerDto";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { query } from "../models/databaseModel";
+import { BannerDto, BannerDtoType, UpdateBannerDtoType, validateDto } from "../dtos/bannerDto";
+import { NotFoundError } from "../errors/NotFoundError";
 
 export async function getBanner(): Promise<BannerDtoType> {
   try {
@@ -58,7 +58,7 @@ export async function getBanner(): Promise<BannerDtoType> {
     return validateDto(BannerDto, bannerData, "Failed to validate banner data");
   } catch (error: any) {
     // If table doesn't exist or other DB error, return default banner
-    const { logger } = await import("../../utils/logger");
+    const { logger } = await import("../utils/logger");
     logger.error("Error fetching banner, returning default:", error);
     
     return {
@@ -165,4 +165,3 @@ export async function updateBanner(data: UpdateBannerDtoType): Promise<BannerDto
     return validateDto(BannerDto, bannerData, "Failed to validate banner data");
   }
 }
-

@@ -1,73 +1,121 @@
-# React + TypeScript + Vite
+# Frontend README
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React + TypeScript + Vite frontend for the e-commerce store. It handles the storefront, authentication flows, cart and wishlist state, checkout screens, and the admin interface.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 19
+- TypeScript
+- Vite
+- React Router
+- Tailwind CSS 4
+- Radix UI
+- AWS Amplify Auth
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Public storefront with home, product detail, about, shipping, returns, and contact pages
+- Customer flows for cart, wishlist, checkout, order history, and settings
+- Authentication with AWS Cognito and Google sign-in callback handling
+- Admin screens for products, orders, promos, manufacturers, users, and banner management
+- Shared API service layer under `src/services`
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+client/
+├── public/
+├── src/
+│   ├── components/
+│   ├── config/
+│   ├── contexts/
+│   ├── pages/
+│   ├── services/
+│   ├── types/
+│   ├── App.tsx
+│   └── main.tsx
+├── .env
+├── package.json
+└── vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Environment Variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create `client/.env` with:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_AWS_COGNITO_USER_POOL_ID=your_user_pool_id
+VITE_AWS_COGNITO_CLIENT_ID=your_cognito_client_id
+VITE_AWS_REGION=your_aws_region
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_API_URL=http://localhost:3001
 ```
+
+Notes:
+
+- Cognito values are read in [`src/config/amplify.ts`](/Users/stephen/Developer/dionola-com/e_commerce_store/client/src/config/amplify.ts:1).
+- `VITE_API_URL` should point to the backend server.
+
+## Install
+
+```bash
+cd client
+pnpm install
+```
+
+## Run
+
+```bash
+pnpm dev
+```
+
+The app runs on Vite's default local server, typically `http://localhost:5173`.
+
+## Available Scripts
+
+- `pnpm dev` starts the development server
+- `pnpm build` creates a production build
+- `pnpm preview` serves the production build locally
+- `pnpm lint` runs ESLint
+
+## Routes
+
+Main application routes are defined in [`src/App.tsx`](/Users/stephen/Developer/dionola-com/e_commerce_store/client/src/App.tsx:1).
+
+- `/`
+- `/product/:id`
+- `/orders`
+- `/wishlist`
+- `/settings`
+- `/checkout`
+- `/checkout/return`
+- `/about`
+- `/shipping`
+- `/returns`
+- `/contact`
+- `/admin`
+- `/admin/products`
+- `/admin/orders`
+- `/admin/promos`
+- `/admin/manufacturers`
+- `/admin/users`
+- `/admin/banner`
+- `/auth/google/callback`
+
+## API Integration
+
+Frontend API calls live under [`src/services`](/Users/stephen/Developer/dionola-com/e_commerce_store/client/src/services). These services communicate with the backend for:
+
+- auth
+- products
+- carts
+- orders
+- wishlists
+- promos
+- settings
+- admin operations
+- banner content
+
+## Build Output
+
+Production files are generated by Vite and can be deployed as a static frontend.

@@ -19,8 +19,9 @@ async function createUser(req: AuthenticatedRequest, res: Response): Promise<voi
     return;
   }
 
+  const body = res.locals.body as CreateUserDtoType;
+
   try {
-    const body = res.locals.body as CreateUserDtoType;
     const creatorGroups = req.user["cognito:groups"] || [];
     const creatorRole = creatorGroups.includes("superadmin")
       ? "superadmin"

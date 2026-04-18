@@ -1,0 +1,9 @@
+.git
+.claude
+.ignore
+.vercel
+client/dist
+server/dist
+client/node_modules
+server/node_modules
+server/images
