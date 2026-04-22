@@ -15,13 +15,27 @@ class PaymentService {
   private defaultProcessor: PaymentProcessorType = "stripe";
 
   constructor() {
-    // Initialize processors
-    this.processors.set("stripe", new StripeProcessor());
+    this.initializeAvailableProcessors();
 
     logger.info("PaymentService initialized", {
       availableProcessors: Array.from(this.processors.keys()),
       defaultProcessor: this.defaultProcessor,
     });
+  }
+
+  private initializeAvailableProcessors(): void {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+
+    if (!secretKey) {
+      logger.warn("Stripe processor disabled: STRIPE_SECRET_KEY is not configured");
+      return;
+    }
+
+    try {
+      this.processors.set("stripe", new StripeProcessor());
+    } catch (error) {
+      logger.error("Failed to initialize Stripe processor", error);
+    }
   }
 
   /**
@@ -52,6 +66,10 @@ class PaymentService {
     return Array.from(this.processors.keys());
   }
 
+  hasProcessor(type: PaymentProcessorType): boolean {
+    return this.processors.has(type);
+  }
+
   /**
    * Set default processor
    */
@@ -67,7 +85,6 @@ class PaymentService {
 
 // Export singleton instance
 export const paymentService = new PaymentService();
-
 
 
 

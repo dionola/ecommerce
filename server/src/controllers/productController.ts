@@ -26,10 +26,21 @@ import {
   AddProductStatusDtoType,
   ProductStatusParamDtoType,
 } from "../dtos/productStatusDto";
+import { logger } from "../utils/logger";
 
 async function getProducts(req: Request, res: Response) {
+    logger.info("getProducts request", {
+        query: req.query,
+        validatedQuery: res.locals.query,
+        path: req.path,
+        originalUrl: req.originalUrl,
+    });
     const query = res.locals.query as GetProductsQueryParamsDtoType;
     const result = await productService.getProducts(query);
+    logger.info("getProducts success", {
+        total: result.total,
+        count: result.products.length,
+    });
     res.json(result);
 }
 

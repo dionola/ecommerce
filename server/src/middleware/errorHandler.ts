@@ -15,6 +15,10 @@ export function errorHandler(
     name: error.name,
     stack: error.stack,
     error: error,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    query: req.query,
+    locals: res.locals,
   });
 
   // Handle validation errors with proper status code
@@ -39,4 +43,3 @@ export function errorHandler(
     stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
   });
 }
-

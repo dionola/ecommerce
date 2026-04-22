@@ -18,18 +18,51 @@ function getBearerToken(header?: string): string | null {
   return token;
 }
 
-async function verifyAccessToken(token: string): Promise<AuthenticatedUser> {
-  const { cognitoVerifier } = await import("../config/cognito");
-  const payload = await cognitoVerifier.verify(token);
+async function verifyGoogleToken(token: string): Promise<AuthenticatedUser> {
+  const audience =
+    process.env.GOOGLE_CLIENT_ID ||
+    process.env.VITE_GOOGLE_CLIENT_ID;
+
+  if (!audience) {
+    throw new Error("Google client ID is not configured");
+  }
+
+  const { OAuth2Client } = await import("google-auth-library");
+  const client = new OAuth2Client(audience);
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience,
+  });
+  const payload = ticket.getPayload();
+
+  if (!payload?.sub) {
+    throw new Error("Google token payload missing subject");
+  }
 
   return {
     ...payload,
-    sub: payload.sub,
+    sub: `google_${payload.sub}`,
     email: typeof payload.email === "string" ? payload.email : undefined,
-    "cognito:groups": Array.isArray(payload["cognito:groups"])
-      ? payload["cognito:groups"].filter((group): group is string => typeof group === "string")
-      : [],
+    "cognito:groups": [],
   };
+}
+
+async function verifyAccessToken(token: string): Promise<AuthenticatedUser> {
+  try {
+    const { cognitoVerifier } = await import("../config/cognito");
+    const payload = await cognitoVerifier.verify(token);
+
+    return {
+      ...payload,
+      sub: payload.sub,
+      email: typeof payload.email === "string" ? payload.email : undefined,
+      "cognito:groups": Array.isArray(payload["cognito:groups"])
+        ? payload["cognito:groups"].filter((group): group is string => typeof group === "string")
+        : [],
+    };
+  } catch {
+    return verifyGoogleToken(token);
+  }
 }
 
 export async function authenticate(

@@ -20,6 +20,11 @@ async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
     return;
   }
 
+  if (!paymentService.hasProcessor("stripe")) {
+    res.status(503).json({ message: "Payments are currently unavailable" });
+    return;
+  }
+
   const body = res.locals.body as CreateCheckoutSessionDtoType;
 
   // Verify order exists and belongs to user
@@ -83,6 +88,10 @@ async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
 async function verifyCheckoutSession(req: AuthenticatedRequest, res: Response) {
   if (!req.user?.sub) {
     return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (!paymentService.hasProcessor("stripe")) {
+    return res.status(503).json({ error: "Payments are currently unavailable" });
   }
 
   const { sessionId } = req.params;
