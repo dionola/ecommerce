@@ -1,15 +1,15 @@
 import { Router } from "express";
-import promoController from "../controllers/promoController";
-import { validateRequestQuery, validateRequestBody, validateRequestParams } from "../middleware/validate";
-import { optionalAuthenticate } from "../middleware/auth";
-import { authenticate } from "../middleware/auth";
-import { authorize } from "../middleware/authorize";
+import promoController from "../controllers/promoController.js";
+import { validateRequestQuery, validateRequestBody, validateRequestParams } from "../middleware/validate.js";
+import { optionalAuthenticate } from "../middleware/auth.js";
+import { authenticate } from "../middleware/auth.js";
+import { authorize } from "../middleware/authorize.js";
 import {
   GetPromosQueryParamsDto,
   CreatePromoDto,
   UpdatePromoDto,
   PromoIdParamDto,
-} from "../dtos/promoDto";
+} from "../dtos/promoDto.js";
 
 const router = Router();
 

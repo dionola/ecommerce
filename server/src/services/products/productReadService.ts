@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { GetProductsResponseDto, GetProductsResponseDtoType, GetProductsQueryParamsDtoType } from "../../dtos/productDto";
-import { validateDto } from "../../utils/validateDto";
+import { query } from "../../models/databaseModel.js";
+import { GetProductsResponseDto, GetProductsResponseDtoType, GetProductsQueryParamsDtoType } from "../../dtos/productDto.js";
+import { validateDto } from "../../utils/validateDto.js";
 
 interface FilterConditions {
   conditions: string[];

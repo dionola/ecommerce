@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { ProductDtoType, UpdateProductDtoType } from "../../dtos/productDto";
-import { checkProductExists, fetchProductWithImages } from "./productHelpers";
+import { query } from "../../models/databaseModel.js";
+import { ProductDtoType, UpdateProductDtoType } from "../../dtos/productDto.js";
+import { checkProductExists, fetchProductWithImages } from "./productHelpers.js";
 
 interface UpdateFields {
   fields: string[];

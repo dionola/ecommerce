@@ -1,12 +1,12 @@
 import { Router } from "express";
-import cartController from "../controllers/cartController";
+import cartController from "../controllers/cartController.js";
 import {
   AddCartItemDto,
   CartItemIdParamDto,
   UpdateCartItemDto,
-} from "../dtos/cartDto";
-import { authenticate } from "../middleware/auth";
-import { validateRequestBody, validateRequestParams } from "../middleware/validate";
+} from "../dtos/cartDto.js";
+import { authenticate } from "../middleware/auth.js";
+import { validateRequestBody, validateRequestParams } from "../middleware/validate.js";
 
 const router = Router();
 

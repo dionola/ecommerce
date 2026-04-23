@@ -1,8 +1,8 @@
-import { query } from "../../models/databaseModel";
-import { CartDtoType, AddCartItemDtoType } from "../../dtos/cartDto";
-import { getOrCreateCart, updateCartTimestamp, fetchCartByUserId, getCartItemByProductId, validateStock } from "./cartHelpers";
-import { getOrCreateUser } from "../users/userService";
-import { checkProductExists } from "../products/productHelpers";
+import { query } from "../../models/databaseModel.js";
+import { CartDtoType, AddCartItemDtoType } from "../../dtos/cartDto.js";
+import { getOrCreateCart, updateCartTimestamp, fetchCartByUserId, getCartItemByProductId, validateStock } from "./cartHelpers.js";
+import { getOrCreateUser } from "../users/userService.js";
+import { checkProductExists } from "../products/productHelpers.js";
 
 export async function addCartItem(cognitoSub: string, email: string, data: AddCartItemDtoType): Promise<CartDtoType> {
   const userId = await getOrCreateUser(cognitoSub, email);

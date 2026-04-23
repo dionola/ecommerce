@@ -1,14 +1,14 @@
 import { Router } from "express";
-import orderController from "../controllers/orderController";
-import { validateRequestQuery, validateRequestBody, validateRequestParams } from "../middleware/validate";
-import { authenticate } from "../middleware/auth";
-import { authorize } from "../middleware/authorize";
+import orderController from "../controllers/orderController.js";
+import { validateRequestQuery, validateRequestBody, validateRequestParams } from "../middleware/validate.js";
+import { authenticate } from "../middleware/auth.js";
+import { authorize } from "../middleware/authorize.js";
 import {
   GetOrdersQueryParamsDto,
   CreateOrderDto,
   UpdateOrderDto,
   OrderIdParamDto,
-} from "../dtos/orderDto";
+} from "../dtos/orderDto.js";
 
 const router = Router();
 

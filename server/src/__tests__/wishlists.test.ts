@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
-import { app } from "./setup";
-import * as databaseModel from "../../models/databaseModel";
-import { cognitoVerifier } from "../../config/cognito";
+import { app } from "./setup.js";
+import * as databaseModel from "../../models/databaseModel.js";
+import { cognitoVerifier } from "../../config/cognito.js";
 
 // Mock the database model
 vi.mock("../../models/databaseModel", () => ({

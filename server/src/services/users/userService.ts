@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { logger } from "../../utils/logger";
+import { query } from "../../models/databaseModel.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { logger } from "../../utils/logger.js";
 
 /**
  * Gets user ID from database using Cognito sub (subject claim from JWT)

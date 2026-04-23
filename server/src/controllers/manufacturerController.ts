@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import * as manufacturerService from "../services/manufacturers/manufacturerService";
+import * as manufacturerService from "../services/manufacturers/manufacturerService.js";
 import {
   ManufacturerDtoType,
   CreateManufacturerDtoType,
   UpdateManufacturerDtoType,
   ManufacturerIdParamDtoType,
-} from "../dtos/manufacturerDto";
+} from "../dtos/manufacturerDto.js";
 
 async function getManufacturers(req: Request, res: Response) {
   const result = await manufacturerService.getManufacturers();

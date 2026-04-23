@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ValidationError } from "../errors/ValidationError";
-import { logger } from "./logger";
+import { ValidationError } from "../errors/ValidationError.js";
+import { logger } from "./logger.js";
 
 /**
  * Validates data against a Zod schema and throws ValidationError if invalid

@@ -1,14 +1,14 @@
 import { Router } from "express";
-import manufacturerController from "../controllers/manufacturerController";
-import { validateRequestBody, validateRequestParams } from "../middleware/validate";
-import { optionalAuthenticate } from "../middleware/auth";
-import { authenticate } from "../middleware/auth";
-import { authorize } from "../middleware/authorize";
+import manufacturerController from "../controllers/manufacturerController.js";
+import { validateRequestBody, validateRequestParams } from "../middleware/validate.js";
+import { optionalAuthenticate } from "../middleware/auth.js";
+import { authenticate } from "../middleware/auth.js";
+import { authorize } from "../middleware/authorize.js";
 import {
   CreateManufacturerDto,
   UpdateManufacturerDto,
   ManufacturerIdParamDto,
-} from "../dtos/manufacturerDto";
+} from "../dtos/manufacturerDto.js";
 
 const router = Router();
 

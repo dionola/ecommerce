@@ -1,17 +1,17 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../../middleware/auth";
-import { paymentService } from "./paymentService";
-import { StripeProcessor } from "./stripe/StripeProcessor";
+import { AuthenticatedRequest } from "../../middleware/auth.js";
+import { paymentService } from "./paymentService.js";
+import { StripeProcessor } from "./stripe/StripeProcessor.js";
 import {
   CreatePaymentIntentDtoType,
   ConfirmPaymentDtoType,
   RefundPaymentDtoType,
   PaymentIntentIdParamDtoType,
   CreateCheckoutSessionDtoType,
-} from "../../dtos/paymentDto";
-import { query } from "../../models/databaseModel";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { getUserIdByCognitoSub } from "../users/userService";
+} from "../../dtos/paymentDto.js";
+import { query } from "../../models/databaseModel.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { getUserIdByCognitoSub } from "../users/userService.js";
 
 /**
  * Create a payment intent for an order

@@ -1,14 +1,14 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../middleware/auth";
+import { AuthenticatedRequest } from "../middleware/auth.js";
 
-import * as orderService from "../services/orders/orderService";
+import * as orderService from "../services/orders/orderService.js";
 import { 
   GetOrdersResponseDtoType,
   GetOrdersQueryParamsDtoType,
   CreateOrderDtoType,
   UpdateOrderDtoType,
   OrderIdParamDtoType
-} from "../dtos/orderDto";
+} from "../dtos/orderDto.js";
 
 async function getOrders(req: AuthenticatedRequest, res: Response) {
     if (!req.user?.sub) {
@@ -19,7 +19,7 @@ async function getOrders(req: AuthenticatedRequest, res: Response) {
     const query = res.locals.query as GetOrdersQueryParamsDtoType;
     
     // Get or create user ID in database
-    const { getOrCreateUser } = await import("../services/users/userService");
+    const { getOrCreateUser } = await import("../services/users/userService.js");
     const userId = await getOrCreateUser(req.user.sub, req.user.email);
     
     // Check if user is admin (can see all orders)
@@ -42,7 +42,7 @@ async function getOrderById(req: AuthenticatedRequest, res: Response) {
     const params = res.locals.params as OrderIdParamDtoType;
     
     // Get or create user ID in database
-    const { getOrCreateUser } = await import("../services/users/userService");
+    const { getOrCreateUser } = await import("../services/users/userService.js");
     const userId = await getOrCreateUser(req.user.sub, req.user.email);
     
     // Check if user is admin (can see any order)
@@ -63,7 +63,7 @@ async function createOrder(req: AuthenticatedRequest, res: Response) {
         res.status(201).json(result);
     } catch (error: any) {
         // Log the error with full details
-        const { logger } = await import("../utils/logger");
+        const { logger } = await import("../utils/logger.js");
         logger.error("Error in createOrder controller:", {
             message: error?.message,
             stack: error?.stack,
@@ -85,7 +85,7 @@ async function updateOrder(req: AuthenticatedRequest, res: Response) {
     const body = res.locals.body as UpdateOrderDtoType;
     
     // Get or create user ID in database
-    const { getOrCreateUser } = await import("../services/users/userService");
+    const { getOrCreateUser } = await import("../services/users/userService.js");
     const userId = await getOrCreateUser(req.user.sub, req.user.email);
     
     // Check if user is admin (can update any order)
@@ -108,7 +108,6 @@ async function deleteOrder(req: AuthenticatedRequest, res: Response) {
 }
 
 export default { getOrders, getOrderById, createOrder, updateOrder, deleteOrder };
-
 
 
 

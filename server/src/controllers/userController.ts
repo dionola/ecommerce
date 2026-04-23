@@ -1,9 +1,9 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../middleware/auth";
-import { createAdminUser } from "../services/users/userManagementService";
-import { CreateUserDtoType } from "../dtos/userDto";
-import { ValidationError } from "../errors/ValidationError";
-import { logger } from "../utils/logger";
+import { AuthenticatedRequest } from "../middleware/auth.js";
+import { createAdminUser } from "../services/users/userManagementService.js";
+import { CreateUserDtoType } from "../dtos/userDto.js";
+import { ValidationError } from "../errors/ValidationError.js";
+import { logger } from "../utils/logger.js";
 
 /**
  * Create a new admin or superadmin user

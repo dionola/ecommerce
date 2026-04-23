@@ -1,12 +1,12 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../middleware/auth";
+import { AuthenticatedRequest } from "../middleware/auth.js";
 
-import * as wishlistService from "../services/wishlists/wishlistService";
+import * as wishlistService from "../services/wishlists/wishlistService.js";
 import { 
   WishlistDtoType,
   AddWishlistItemDtoType,
   RemoveWishlistItemDtoType
-} from "../dtos/wishlistDto";
+} from "../dtos/wishlistDto.js";
 
 async function getWishlist(req: AuthenticatedRequest, res: Response) {
     if (!req.user?.sub || !req.user?.email) {

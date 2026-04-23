@@ -49,7 +49,7 @@ async function verifyGoogleToken(token: string): Promise<AuthenticatedUser> {
 
 async function verifyAccessToken(token: string): Promise<AuthenticatedUser> {
   try {
-    const { cognitoVerifier } = await import("../config/cognito");
+    const { cognitoVerifier } = await import("../config/cognito.js");
     const payload = await cognitoVerifier.verify(token);
 
     return {

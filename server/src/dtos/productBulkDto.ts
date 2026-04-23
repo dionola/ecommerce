@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { CreateProductDto } from "./productDto";
-import { UpdateProductDto } from "./productDto";
+import { CreateProductDto } from "./productDto.js";
+import { UpdateProductDto } from "./productDto.js";
 
 /**
  * DTO for bulk creating products

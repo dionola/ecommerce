@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { PromoDtoType, UpdatePromoDtoType } from "../../dtos/promoDto";
-import { checkPromoExists, fetchPromoById } from "./promoHelpers";
+import { query } from "../../models/databaseModel.js";
+import { PromoDtoType, UpdatePromoDtoType } from "../../dtos/promoDto.js";
+import { checkPromoExists, fetchPromoById } from "./promoHelpers.js";
 
 interface UpdateFields {
   fields: string[];

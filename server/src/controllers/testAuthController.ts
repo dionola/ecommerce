@@ -3,8 +3,8 @@ import {
   InitiateAuthCommand,
   CognitoIdentityProviderClient,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { cognitoConfig, cognitoClient } from "../config/cognito";
-import { logger } from "../utils/logger";
+import { cognitoConfig, cognitoClient } from "../config/cognito.js";
+import { logger } from "../utils/logger.js";
 import crypto from "crypto";
 
 /**

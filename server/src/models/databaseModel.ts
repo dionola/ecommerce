@@ -1,6 +1,6 @@
 import { QueryResult } from "pg";
-import { pool } from "../config/database";
-import { logger } from "../utils/logger";
+import { pool } from "../config/database.js";
+import { logger } from "../utils/logger.js";
 
 /**
  * Formats SQL query for better readability in logs

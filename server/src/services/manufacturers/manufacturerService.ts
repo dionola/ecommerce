@@ -1,7 +1,7 @@
-import { query } from "../../models/databaseModel";
-import { ManufacturerDtoType, CreateManufacturerDtoType, UpdateManufacturerDtoType } from "../../dtos/manufacturerDto";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { ValidationError } from "../../errors/ValidationError";
+import { query } from "../../models/databaseModel.js";
+import { ManufacturerDtoType, CreateManufacturerDtoType, UpdateManufacturerDtoType } from "../../dtos/manufacturerDto.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { ValidationError } from "../../errors/ValidationError.js";
 
 /**
  * Get all manufacturers

@@ -1,4 +1,4 @@
-import { app } from "../index";
+import { app } from "../index.js";
 
 /**
  * Exports the Express app instance for testing

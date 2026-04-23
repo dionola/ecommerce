@@ -1,7 +1,7 @@
-import { query } from "../../models/databaseModel";
-import { GetOrdersResponseDto, GetOrdersResponseDtoType, GetOrdersQueryParamsDtoType } from "../../dtos/orderDto";
-import { validateDto } from "../../utils/validateDto";
-import { fetchOrderById } from "./orderHelpers";
+import { query } from "../../models/databaseModel.js";
+import { GetOrdersResponseDto, GetOrdersResponseDtoType, GetOrdersQueryParamsDtoType } from "../../dtos/orderDto.js";
+import { validateDto } from "../../utils/validateDto.js";
+import { fetchOrderById } from "./orderHelpers.js";
 
 interface FilterConditions {
   conditions: string[];

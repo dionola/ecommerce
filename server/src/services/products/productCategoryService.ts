@@ -1,4 +1,4 @@
-import { query } from "../../models/databaseModel";
+import { query } from "../../models/databaseModel.js";
 
 export async function getCategories(): Promise<string[]> {
   const categoriesQuery = `

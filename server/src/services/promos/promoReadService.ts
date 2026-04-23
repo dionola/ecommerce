@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { GetPromosResponseDto, GetPromosResponseDtoType, GetPromosQueryParamsDtoType } from "../../dtos/promoDto";
-import { validateDto } from "../../utils/validateDto";
+import { query } from "../../models/databaseModel.js";
+import { GetPromosResponseDto, GetPromosResponseDtoType, GetPromosQueryParamsDtoType } from "../../dtos/promoDto.js";
+import { validateDto } from "../../utils/validateDto.js";
 
 interface FilterConditions {
   conditions: string[];
@@ -93,7 +93,7 @@ export async function getPromos(filters: GetPromosQueryParamsDtoType): Promise<G
 }
 
 export async function getPromoById(promoId: number) {
-  const { fetchPromoById } = await import("./promoHelpers");
+  const { fetchPromoById } = await import("./promoHelpers.js");
   return fetchPromoById(promoId);
 }
 

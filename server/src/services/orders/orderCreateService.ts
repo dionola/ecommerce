@@ -1,12 +1,12 @@
-import { query } from "../../models/databaseModel";
-import { OrderDtoType, CreateOrderDtoType } from "../../dtos/orderDto";
-import { getOrCreateUser } from "../users/userService";
-import { fetchCartByUserId } from "../carts/cartHelpers";
-import { clearCart } from "../carts/cartService";
-import { validateCartStock, applyPromoDiscount } from "./orderHelpers";
-import { ValidationError } from "../../errors/ValidationError";
-import { fetchOrderById } from "./orderHelpers";
-import { CartItemDtoType } from "../../dtos/cartDto";
+import { query } from "../../models/databaseModel.js";
+import { OrderDtoType, CreateOrderDtoType } from "../../dtos/orderDto.js";
+import { getOrCreateUser } from "../users/userService.js";
+import { fetchCartByUserId } from "../carts/cartHelpers.js";
+import { clearCart } from "../carts/cartService.js";
+import { validateCartStock, applyPromoDiscount } from "./orderHelpers.js";
+import { ValidationError } from "../../errors/ValidationError.js";
+import { fetchOrderById } from "./orderHelpers.js";
+import { CartItemDtoType } from "../../dtos/cartDto.js";
 // paymentService import removed
 
 export async function createOrder(cognitoSub: string, email: string, data: CreateOrderDtoType): Promise<OrderDtoType> {
@@ -16,7 +16,7 @@ export async function createOrder(cognitoSub: string, email: string, data: Creat
   const cart = await fetchCartByUserId(userId);
 
   // Log cart details for debugging
-  const { logger } = await import("../../utils/logger");
+  const { logger } = await import("../../utils/logger.js");
   logger.info("Order creation - cart check", {
     userId,
     cognitoSub,
@@ -101,7 +101,7 @@ export async function createOrder(cognitoSub: string, email: string, data: Creat
   try {
     await query(insertItemsQuery, itemParams);
   } catch (error: any) {
-    const { logger } = await import("../../utils/logger");
+    const { logger } = await import("../../utils/logger.js");
     logger.error("Failed to insert order items:", {
       error: error.message,
       stack: error.stack,

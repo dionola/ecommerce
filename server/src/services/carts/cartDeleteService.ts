@@ -1,8 +1,8 @@
-import { query } from "../../models/databaseModel";
-import { CartDtoType } from "../../dtos/cartDto";
-import { updateCartTimestamp, fetchCartByUserId } from "./cartHelpers";
-import { getOrCreateUser } from "../users/userService";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { query } from "../../models/databaseModel.js";
+import { CartDtoType } from "../../dtos/cartDto.js";
+import { updateCartTimestamp, fetchCartByUserId } from "./cartHelpers.js";
+import { getOrCreateUser } from "../users/userService.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
 
 export async function removeCartItem(cognitoSub: string, itemId: number, email?: string): Promise<CartDtoType> {
   const userId = await getOrCreateUser(cognitoSub, email || "unknown@example.com");

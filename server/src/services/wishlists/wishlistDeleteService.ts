@@ -1,8 +1,8 @@
-import { query } from "../../models/databaseModel";
-import { WishlistDtoType } from "../../dtos/wishlistDto";
-import { getOrCreateWishlist, fetchWishlistByUserId, checkWishlistItemExists } from "./wishlistHelpers";
-import { getOrCreateUser } from "../users/userService";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { query } from "../../models/databaseModel.js";
+import { WishlistDtoType } from "../../dtos/wishlistDto.js";
+import { getOrCreateWishlist, fetchWishlistByUserId, checkWishlistItemExists } from "./wishlistHelpers.js";
+import { getOrCreateUser } from "../users/userService.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
 
 export async function removeWishlistItem(cognitoSub: string, email: string, productId: number): Promise<WishlistDtoType> {
   const userId = await getOrCreateUser(cognitoSub, email);

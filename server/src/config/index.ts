@@ -3,16 +3,16 @@
  * Combines all route definitions into a single paths object
  */
 
-import { productsDefinition } from "./products";
-import { productsIdDefinition } from "./productsId";
-import { promosDefinition } from "./promos";
-import { promosIdDefinition } from "./promosId";
-import { wishlistsDefinition } from "./wishlists";
-import { cartsDefinition } from "./carts";
-import { ordersDefinition } from "./orders";
-import { usersDefinition } from "./users";
-import { manufacturersDefinition } from "./manufacturers";
-import { testAuthDefinition } from "./testAuth";
+import { productsDefinition } from "./products.js";
+import { productsIdDefinition } from "./productsId.js";
+import { promosDefinition } from "./promos.js";
+import { promosIdDefinition } from "./promosId.js";
+import { wishlistsDefinition } from "./wishlists.js";
+import { cartsDefinition } from "./carts.js";
+import { ordersDefinition } from "./orders.js";
+import { usersDefinition } from "./users.js";
+import { manufacturersDefinition } from "./manufacturers.js";
+import { testAuthDefinition } from "./testAuth.js";
 
 export const swaggerPaths = {
   ...productsDefinition,

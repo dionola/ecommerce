@@ -1,9 +1,9 @@
-import { query } from "../../models/databaseModel";
-import { WishlistDtoType, AddWishlistItemDtoType } from "../../dtos/wishlistDto";
-import { getOrCreateWishlist, checkWishlistItemExists, fetchWishlistByUserId } from "./wishlistHelpers";
-import { getOrCreateUser } from "../users/userService";
-import { checkProductExists } from "../products/productHelpers";
-import { ValidationError } from "../../errors/ValidationError";
+import { query } from "../../models/databaseModel.js";
+import { WishlistDtoType, AddWishlistItemDtoType } from "../../dtos/wishlistDto.js";
+import { getOrCreateWishlist, checkWishlistItemExists, fetchWishlistByUserId } from "./wishlistHelpers.js";
+import { getOrCreateUser } from "../users/userService.js";
+import { checkProductExists } from "../products/productHelpers.js";
+import { ValidationError } from "../../errors/ValidationError.js";
 
 export async function addWishlistItem(cognitoSub: string, email: string, data: AddWishlistItemDtoType): Promise<WishlistDtoType> {
   const userId = await getOrCreateUser(cognitoSub, email);

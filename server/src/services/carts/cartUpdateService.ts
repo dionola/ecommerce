@@ -1,8 +1,8 @@
-import { query } from "../../models/databaseModel";
-import { CartDtoType, UpdateCartItemDtoType } from "../../dtos/cartDto";
-import { updateCartTimestamp, fetchCartByUserId, validateStock } from "./cartHelpers";
-import { getUserIdByCognitoSub } from "../users/userService";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { query } from "../../models/databaseModel.js";
+import { CartDtoType, UpdateCartItemDtoType } from "../../dtos/cartDto.js";
+import { updateCartTimestamp, fetchCartByUserId, validateStock } from "./cartHelpers.js";
+import { getUserIdByCognitoSub } from "../users/userService.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
 
 export async function updateCartItem(cognitoSub: string, itemId: number, data: UpdateCartItemDtoType): Promise<CartDtoType> {
   const userId = await getUserIdByCognitoSub(cognitoSub);

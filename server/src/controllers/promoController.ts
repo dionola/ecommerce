@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 
-import * as promoService from "../services/promos/promoService";
+import * as promoService from "../services/promos/promoService.js";
 import { 
   GetPromosResponseDtoType, 
   GetPromosQueryParamsDtoType,
   CreatePromoDtoType,
   UpdatePromoDtoType,
   PromoIdParamDtoType
-} from "../dtos/promoDto";
+} from "../dtos/promoDto.js";
 
 async function getPromos(req: Request, res: Response) {
     const query = res.locals.query as GetPromosQueryParamsDtoType;

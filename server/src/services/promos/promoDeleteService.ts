@@ -1,5 +1,5 @@
-import { query } from "../../models/databaseModel";
-import { checkPromoExists } from "./promoHelpers";
+import { query } from "../../models/databaseModel.js";
+import { checkPromoExists } from "./promoHelpers.js";
 
 async function deletePromoRecord(promoId: number): Promise<void> {
   const deleteQuery = `DELETE FROM promos WHERE id = $1`;

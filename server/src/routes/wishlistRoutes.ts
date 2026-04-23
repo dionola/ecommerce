@@ -1,10 +1,10 @@
 import { Router } from "express";
-import wishlistController from "../controllers/wishlistController";
-import { validateRequestBody, validateRequestParams } from "../middleware/validate";
-import { authenticate } from "../middleware/auth";
+import wishlistController from "../controllers/wishlistController.js";
+import { validateRequestBody, validateRequestParams } from "../middleware/validate.js";
+import { authenticate } from "../middleware/auth.js";
 import {
   AddWishlistItemDto,
-} from "../dtos/wishlistDto";
+} from "../dtos/wishlistDto.js";
 import { z } from "zod";
 
 const router = Router();

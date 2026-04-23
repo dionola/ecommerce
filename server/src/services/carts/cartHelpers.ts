@@ -1,7 +1,7 @@
-import { query } from "../../models/databaseModel";
-import { CartDto, CartDtoType } from "../../dtos/cartDto";
-import { validateDto } from "../../utils/validateDto";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { query } from "../../models/databaseModel.js";
+import { CartDto, CartDtoType } from "../../dtos/cartDto.js";
+import { validateDto } from "../../utils/validateDto.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
 
 /**
  * Gets or creates a cart for a user

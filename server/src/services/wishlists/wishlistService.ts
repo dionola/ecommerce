@@ -1,6 +1,6 @@
-export { getWishlist } from "./wishlistReadService";
-export { addWishlistItem } from "./wishlistCreateService";
-export { removeWishlistItem, clearWishlist } from "./wishlistDeleteService";
+export { getWishlist } from "./wishlistReadService.js";
+export { addWishlistItem } from "./wishlistCreateService.js";
+export { removeWishlistItem, clearWishlist } from "./wishlistDeleteService.js";
 
 
 

@@ -1,9 +1,9 @@
-import { query } from "../../models/databaseModel";
-import { WishlistDto, WishlistDtoType } from "../../dtos/wishlistDto";
-import { validateDto } from "../../utils/validateDto";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { ProductDto } from "../../dtos/productDto";
-import { getUserIdByCognitoSub } from "../users/userService";
+import { query } from "../../models/databaseModel.js";
+import { WishlistDto, WishlistDtoType } from "../../dtos/wishlistDto.js";
+import { validateDto } from "../../utils/validateDto.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { ProductDto } from "../../dtos/productDto.js";
+import { getUserIdByCognitoSub } from "../users/userService.js";
 
 /**
  * Gets or creates a wishlist for a user

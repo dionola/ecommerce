@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
-import { AuthenticatedRequest } from "./auth";
-import { logger } from "../utils/logger";
+import { AuthenticatedRequest } from "./auth.js";
+import { logger } from "../utils/logger.js";
 
 /**
  * Allowed roles for authorization

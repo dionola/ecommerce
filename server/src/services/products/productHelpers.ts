@@ -1,7 +1,7 @@
-import { query } from "../../models/databaseModel";
-import { ProductDto, ProductDtoType } from "../../dtos/productDto";
-import { validateDto } from "../../utils/validateDto";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { query } from "../../models/databaseModel.js";
+import { ProductDto, ProductDtoType } from "../../dtos/productDto.js";
+import { validateDto } from "../../utils/validateDto.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
 
 /**
  * Returns the base SELECT query for products with images

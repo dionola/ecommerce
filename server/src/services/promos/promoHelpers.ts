@@ -1,7 +1,7 @@
-import { query } from "../../models/databaseModel";
-import { PromoDto, PromoDtoType } from "../../dtos/promoDto";
-import { validateDto } from "../../utils/validateDto";
-import { NotFoundError } from "../../errors/NotFoundError";
+import { query } from "../../models/databaseModel.js";
+import { PromoDto, PromoDtoType } from "../../dtos/promoDto.js";
+import { validateDto } from "../../utils/validateDto.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
 
 /**
  * Fetches a promo by ID

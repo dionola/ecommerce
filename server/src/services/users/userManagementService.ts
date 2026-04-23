@@ -4,11 +4,11 @@ import {
   AdminAddUserToGroupCommand,
   UsernameExistsException,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { cognitoClient, cognitoConfig } from "../../config/cognito";
-import { getOrCreateUser } from "./userService";
-import { CreateUserDtoType, CreateUserResponseDtoType } from "../../dtos/userDto";
-import { ValidationError } from "../../errors/ValidationError";
-import { logger } from "../../utils/logger";
+import { cognitoClient, cognitoConfig } from "../../config/cognito.js";
+import { getOrCreateUser } from "./userService.js";
+import { CreateUserDtoType, CreateUserResponseDtoType } from "../../dtos/userDto.js";
+import { ValidationError } from "../../errors/ValidationError.js";
+import { logger } from "../../utils/logger.js";
 
 /**
  * Validates that the creator has permission to create a user with the requested role

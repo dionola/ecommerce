@@ -3,12 +3,12 @@
  * Routes payment operations to the appropriate processor
  */
 
-import { IPaymentProcessor } from "./PaymentProcessor";
-import { StripeProcessor } from "./stripe/StripeProcessor";
+import { IPaymentProcessor } from "./PaymentProcessor.js";
+import { StripeProcessor } from "./stripe/StripeProcessor.js";
 import {
   PaymentProcessorType,
-} from "./paymentTypes";
-import { logger } from "../../utils/logger";
+} from "./paymentTypes.js";
+import { logger } from "../../utils/logger.js";
 
 class PaymentService {
   private processors: Map<PaymentProcessorType, IPaymentProcessor> = new Map();

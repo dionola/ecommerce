@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { UpdateBannerDtoType } from "../dtos/bannerDto";
-import * as bannerService from "../services/bannerService";
+import { UpdateBannerDtoType } from "../dtos/bannerDto.js";
+import * as bannerService from "../services/bannerService.js";
 
 async function getBanner(_req: Request, res: Response) {
   const result = await bannerService.getBanner();

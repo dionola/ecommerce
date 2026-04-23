@@ -3,26 +3,30 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
-import { swaggerSpec } from "./config/swagger";
-import { validateEnv } from "./config/env";
-import bannerRoutes from "./routes/bannerRoutes";
-import cartRoutes from "./routes/cartRoutes";
-import healthRoutes from "./routes/healthRoutes";
-import manufacturerRoutes from "./routes/manufacturerRoutes";
-import orderRoutes from "./routes/orderRoutes";
-import paymentRoutes from "./routes/paymentRoutes";
-import productRoutes from "./routes/productRoutes";
-import promoRoutes from "./routes/promoRoutes";
-import testAuthRoutes from "./routes/testAuthRoutes";
-import userRoutes from "./routes/userRoutes";
-import wishlistRoutes from "./routes/wishlistRoutes";
-import { errorHandler } from "./middleware/errorHandler";
-import { generalLimiter, sensitiveLimiter } from "./middleware/rateLimit";
-import { logger } from "./utils/logger";
+import { swaggerSpec } from "./config/swagger.js";
+import { validateEnv } from "./config/env.js";
+import bannerRoutes from "./routes/bannerRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import healthRoutes from "./routes/healthRoutes.js";
+import manufacturerRoutes from "./routes/manufacturerRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
+import promoRoutes from "./routes/promoRoutes.js";
+import testAuthRoutes from "./routes/testAuthRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { generalLimiter, sensitiveLimiter } from "./middleware/rateLimit.js";
+import { logger } from "./utils/logger.js";
 
 validateEnv();
 
 const app = express();
+
+// The app runs behind a reverse proxy in production, so trust the first proxy
+// to read the real client IP from X-Forwarded-For for rate limiting/logging.
+app.set("trust proxy", 1);
 
 app.use(helmet());
 app.use(cors({

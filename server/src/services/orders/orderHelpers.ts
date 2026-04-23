@@ -1,11 +1,11 @@
-import { query } from "../../models/databaseModel";
-import { OrderDto, OrderDtoType } from "../../dtos/orderDto";
-import { validateDto } from "../../utils/validateDto";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { ValidationError } from "../../errors/ValidationError";
-import { getUserIdByCognitoSub } from "../users/userService";
-import { fetchCartByUserId } from "../carts/cartHelpers";
-import { CartDtoType } from "../../dtos/cartDto";
+import { query } from "../../models/databaseModel.js";
+import { OrderDto, OrderDtoType } from "../../dtos/orderDto.js";
+import { validateDto } from "../../utils/validateDto.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { ValidationError } from "../../errors/ValidationError.js";
+import { getUserIdByCognitoSub } from "../users/userService.js";
+import { fetchCartByUserId } from "../carts/cartHelpers.js";
+import { CartDtoType } from "../../dtos/cartDto.js";
 
 /**
  * Validates and applies promo code to calculate discount

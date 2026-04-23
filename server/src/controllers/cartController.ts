@@ -1,11 +1,11 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../middleware/auth";
+import { AuthenticatedRequest } from "../middleware/auth.js";
 import {
   AddCartItemDtoType,
   CartItemIdParamDtoType,
   UpdateCartItemDtoType,
-} from "../dtos/cartDto";
-import * as cartService from "../services/carts/cartService";
+} from "../dtos/cartDto.js";
+import * as cartService from "../services/carts/cartService.js";
 
 function assertUser(req: AuthenticatedRequest, res: Response): req is AuthenticatedRequest & { user: NonNullable<AuthenticatedRequest["user"]> } {
   if (!req.user?.sub || !req.user.email) {

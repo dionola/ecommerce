@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { ProductDtoType, CreateProductDtoType } from "../../dtos/productDto";
-import { fetchProductWithImages } from "./productHelpers";
+import { query } from "../../models/databaseModel.js";
+import { ProductDtoType, CreateProductDtoType } from "../../dtos/productDto.js";
+import { fetchProductWithImages } from "./productHelpers.js";
 
 interface ProductInsertParams {
   params: any[];

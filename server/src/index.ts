@@ -1,6 +1,6 @@
-import app from "./app";
-import { pool } from "./config/database";
-import { logger } from "./utils/logger";
+import app from "./app.js";
+import { pool } from "./config/database.js";
+import { logger } from "./utils/logger.js";
 const port = process.env.PORT || "3001";
 
 let server: ReturnType<typeof app.listen> | null = null;

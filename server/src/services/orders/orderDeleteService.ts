@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { checkOrderExists } from "./orderHelpers";
-import { ValidationError } from "../../errors/ValidationError";
+import { query } from "../../models/databaseModel.js";
+import { checkOrderExists } from "./orderHelpers.js";
+import { ValidationError } from "../../errors/ValidationError.js";
 
 async function deleteOrderRecord(orderId: number): Promise<void> {
   // Check if order can be deleted (only pending orders should be deletable)

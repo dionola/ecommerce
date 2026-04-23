@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { IPaymentProcessor } from "../PaymentProcessor";
-import { logger } from "../../../utils/logger";
+import { IPaymentProcessor } from "../PaymentProcessor.js";
+import { logger } from "../../../utils/logger.js";
 
 export class StripeProcessor implements IPaymentProcessor {
     private stripe: Stripe;

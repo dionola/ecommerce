@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { PromoDtoType, CreatePromoDtoType } from "../../dtos/promoDto";
-import { fetchPromoById } from "./promoHelpers";
+import { query } from "../../models/databaseModel.js";
+import { PromoDtoType, CreatePromoDtoType } from "../../dtos/promoDto.js";
+import { fetchPromoById } from "./promoHelpers.js";
 
 async function insertPromo(data: CreatePromoDtoType): Promise<number> {
   const insertPromoQuery = `

@@ -1,9 +1,9 @@
-import { query } from "../../models/databaseModel";
-import { ProductDtoType } from "../../dtos/productDto";
-import { fetchProductWithImages, checkProductExists } from "./productHelpers";
-import { NotFoundError } from "../../errors/NotFoundError";
-import { ValidationError } from "../../errors/ValidationError";
-import { CreateProductImageDtoType, UpdateProductImageDtoType } from "../../dtos/productImageDto";
+import { query } from "../../models/databaseModel.js";
+import { ProductDtoType } from "../../dtos/productDto.js";
+import { fetchProductWithImages, checkProductExists } from "./productHelpers.js";
+import { NotFoundError } from "../../errors/NotFoundError.js";
+import { ValidationError } from "../../errors/ValidationError.js";
+import { CreateProductImageDtoType, UpdateProductImageDtoType } from "../../dtos/productImageDto.js";
 
 /**
  * Add images to a product

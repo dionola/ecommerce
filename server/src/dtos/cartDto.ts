@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProductDto } from "./productDto";
+import { ProductDto } from "./productDto.js";
 
 export const CartItemDto = z.object({
   id: z.number().int().positive(),

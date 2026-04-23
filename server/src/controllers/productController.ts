@@ -1,32 +1,32 @@
 import { Request, Response } from "express";
 
-import * as productService from "../services/products/productService";
-import * as productImageService from "../services/products/productImageService";
-import * as productBulkService from "../services/products/productBulkService";
-import * as productStatusService from "../services/products/productStatusService";
+import * as productService from "../services/products/productService.js";
+import * as productImageService from "../services/products/productImageService.js";
+import * as productBulkService from "../services/products/productBulkService.js";
+import * as productStatusService from "../services/products/productStatusService.js";
 import { 
   GetProductsResponseDtoType, 
   GetProductsQueryParamsDtoType,
   CreateProductDtoType,
   UpdateProductDtoType,
   ProductIdParamDtoType
-} from "../dtos/productDto";
+} from "../dtos/productDto.js";
 import {
   CreateProductImagesDtoType,
   UpdateProductImageDtoType,
   ReorderProductImagesDtoType,
   ProductImageIdParamDtoType,
-} from "../dtos/productImageDto";
+} from "../dtos/productImageDto.js";
 import {
   BulkCreateProductsDtoType,
   BulkUpdateProductsDtoType,
   BulkDeleteProductsDtoType,
-} from "../dtos/productBulkDto";
+} from "../dtos/productBulkDto.js";
 import {
   AddProductStatusDtoType,
   ProductStatusParamDtoType,
-} from "../dtos/productStatusDto";
-import { logger } from "../utils/logger";
+} from "../dtos/productStatusDto.js";
+import { logger } from "../utils/logger.js";
 
 async function getProducts(req: Request, res: Response) {
     logger.info("getProducts request", {

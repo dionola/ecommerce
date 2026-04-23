@@ -1,6 +1,6 @@
-import { query } from "../../models/databaseModel";
-import { OrderDtoType, UpdateOrderDtoType } from "../../dtos/orderDto";
-import { checkOrderExists, fetchOrderById } from "./orderHelpers";
+import { query } from "../../models/databaseModel.js";
+import { OrderDtoType, UpdateOrderDtoType } from "../../dtos/orderDto.js";
+import { checkOrderExists, fetchOrderById } from "./orderHelpers.js";
 
 interface UpdateFields {
   fields: string[];

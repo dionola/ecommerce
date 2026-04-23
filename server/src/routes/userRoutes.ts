@@ -1,9 +1,9 @@
 import { Router } from "express";
-import userController from "../controllers/userController";
-import { validateRequestBody } from "../middleware/validate";
-import { authenticate } from "../middleware/auth";
-import { authorize } from "../middleware/authorize";
-import { CreateUserDto } from "../dtos/userDto";
+import userController from "../controllers/userController.js";
+import { validateRequestBody } from "../middleware/validate.js";
+import { authenticate } from "../middleware/auth.js";
+import { authorize } from "../middleware/authorize.js";
+import { CreateUserDto } from "../dtos/userDto.js";
 
 const router = Router();
 

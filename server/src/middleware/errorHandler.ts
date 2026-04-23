@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { ValidationError } from "../errors/ValidationError";
-import { NotFoundError } from "../errors/NotFoundError";
-import { logger } from "../utils/logger";
+import { ValidationError } from "../errors/ValidationError.js";
+import { NotFoundError } from "../errors/NotFoundError.js";
+import { logger } from "../utils/logger.js";
 
 export function errorHandler(
   error: Error,

@@ -1,11 +1,11 @@
-import { query } from "../../models/databaseModel";
-import { ProductDtoType, CreateProductDtoType, UpdateProductDtoType } from "../../dtos/productDto";
-import { BulkCreateProductsDtoType, BulkUpdateProductsDtoType, BulkDeleteProductsDtoType } from "../../dtos/productBulkDto";
-import { createProduct } from "./productCreateService";
-import { updateProduct } from "./productUpdateService";
-import { deleteProduct } from "./productDeleteService";
-import { fetchProductWithImages } from "./productHelpers";
-import { ValidationError } from "../../errors/ValidationError";
+import { query } from "../../models/databaseModel.js";
+import { ProductDtoType, CreateProductDtoType, UpdateProductDtoType } from "../../dtos/productDto.js";
+import { BulkCreateProductsDtoType, BulkUpdateProductsDtoType, BulkDeleteProductsDtoType } from "../../dtos/productBulkDto.js";
+import { createProduct } from "./productCreateService.js";
+import { updateProduct } from "./productUpdateService.js";
+import { deleteProduct } from "./productDeleteService.js";
+import { fetchProductWithImages } from "./productHelpers.js";
+import { ValidationError } from "../../errors/ValidationError.js";
 
 /**
  * Bulk create products

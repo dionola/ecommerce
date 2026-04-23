@@ -46,12 +46,7 @@ export function CartSheet({
       <Sheet open={isOpen} onOpenChange={onClose}>
         <SheetContent className="w-full sm:max-w-md p-0 flex flex-col border-none rounded-none">
           <SheetHeader className="p-8 border-b border-border">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-2xl font-bold uppercase tracking-tighter">Your Bag</SheetTitle>
-              <button onClick={onClose} className="p-2 hover:bg-secondary transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <SheetTitle className="text-2xl font-bold uppercase tracking-tighter">Your Bag</SheetTitle>
           </SheetHeader>
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
             <ShoppingBag className="w-12 h-12 mb-6 text-muted-foreground stroke-1" />
@@ -111,12 +106,7 @@ export function CartSheet({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-md p-0 flex flex-col border-none rounded-none">
         <SheetHeader className="p-8 border-b border-border">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-2xl font-bold uppercase tracking-tighter">Your Bag</SheetTitle>
-            <button onClick={onClose} className="p-2 hover:bg-secondary transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <SheetTitle className="text-2xl font-bold uppercase tracking-tighter">Your Bag</SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
@@ -214,4 +204,3 @@ export function CartSheet({
     </Sheet>
   )
 }
-

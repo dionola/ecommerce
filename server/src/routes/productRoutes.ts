@@ -1,29 +1,29 @@
 import { Router } from "express";
-import productController from "../controllers/productController";
-import { validateRequestQuery, validateRequestBody, validateRequestParams } from "../middleware/validate";
-import { authenticate, optionalAuthenticate } from "../middleware/auth";
-import { authorize } from "../middleware/authorize";
+import productController from "../controllers/productController.js";
+import { validateRequestQuery, validateRequestBody, validateRequestParams } from "../middleware/validate.js";
+import { authenticate, optionalAuthenticate } from "../middleware/auth.js";
+import { authorize } from "../middleware/authorize.js";
 import { 
   GetProductsQueryParamsDto, 
   CreateProductDto,
   UpdateProductDto,
   ProductIdParamDto
-} from "../dtos/productDto";
+} from "../dtos/productDto.js";
 import {
   CreateProductImagesDto,
   UpdateProductImageDto,
   ReorderProductImagesDto,
   ProductImageIdParamDto,
-} from "../dtos/productImageDto";
+} from "../dtos/productImageDto.js";
 import {
   BulkCreateProductsDto,
   BulkUpdateProductsDto,
   BulkDeleteProductsDto,
-} from "../dtos/productBulkDto";
+} from "../dtos/productBulkDto.js";
 import {
   AddProductStatusDto,
   ProductStatusParamDto,
-} from "../dtos/productStatusDto";
+} from "../dtos/productStatusDto.js";
 
 const router = Router();
 
