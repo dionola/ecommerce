@@ -9,6 +9,7 @@ import { mapProductDtoToProduct } from "../types/product"
 import { toast, dismissToastsByTitle } from "./ui/toaster"
 import type { CartDtoType, GuestCartType } from "../types/cart"
 import { useEffect } from "react"
+import { formatCurrency } from "../lib/currency"
 
 export function CartSheet({
   isOpen,
@@ -167,7 +168,7 @@ export function CartSheet({
                               <Plus className="w-3 h-3" />
                             </button>
                           </div>
-                          <p className="text-sm font-bold tracking-tighter">${(product.price * item.quantity).toFixed(2)}</p>
+                          <p className="text-sm font-bold tracking-tighter">{formatCurrency(product.price * item.quantity)}</p>
                         </div>
                       </div>
                     </div>
@@ -180,7 +181,7 @@ export function CartSheet({
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   <span>Shipping</span>
@@ -188,7 +189,7 @@ export function CartSheet({
                 </div>
                 <div className="border-t border-border pt-4 flex justify-between text-lg font-bold uppercase tracking-tighter">
                   <span>Total</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
               </div>
               <Button 

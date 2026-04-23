@@ -12,6 +12,7 @@ import {
 import { query } from "../../models/databaseModel.js";
 import { NotFoundError } from "../../errors/NotFoundError.js";
 import { getUserIdByCognitoSub } from "../users/userService.js";
+import { fetchOrderById } from "../orders/orderHelpers.js";
 
 /**
  * Create a payment intent for an order
@@ -26,7 +27,7 @@ async function createPaymentIntent(req: AuthenticatedRequest, res: Response) {
 
   // Verify order exists and belongs to user
   const orderQuery = `
-    SELECT id, user_id, total_amount, status
+    SELECT id, user_id, status
     FROM orders
     WHERE id = $1
   `;
@@ -51,7 +52,7 @@ async function createPaymentIntent(req: AuthenticatedRequest, res: Response) {
   // Convert amount to cents (smallest currency unit)
   const amountInCents = Math.round(order.total_amount * 100);
 
-  const currency = process.env.STRIPE_CURRENCY || "usd";
+  const currency = process.env.STRIPE_CURRENCY || "php";
   const paymentIntent = await paymentService.createPaymentIntent(
     {
       amount: amountInCents,
@@ -324,13 +325,22 @@ async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
     return;
   }
 
-  // Convert amount to cents (smallest currency unit)
-  const amountInCents = Math.round(order.total_amount * 100);
-
   // Get Stripe processor instance
   const stripeProcessor = paymentService.getProcessorInstance("stripe") as StripeProcessor;
   if (!stripeProcessor) {
     throw new Error("Stripe processor not available");
+  }
+
+  const fullOrder = await fetchOrderById(order.id, isAdmin ? undefined : userId);
+  const lineItems = fullOrder.items.map((item) => ({
+    name: item.product.name,
+    unitAmount: Math.round(item.price_at_purchase * 100),
+    quantity: item.quantity,
+    imageUrl: item.product.images?.find((image) => image.is_main)?.url || item.product.images?.[0]?.url,
+  }));
+
+  if (lineItems.length === 0) {
+    throw new Error(`Order ${order.id} has no items for checkout`);
   }
 
   // Determine success and cancel URLs
@@ -340,11 +350,11 @@ async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
 
   // Create checkout session
   const checkoutSession = await stripeProcessor.createCheckoutSession({
-    amount: amountInCents,
-    currency: "usd",
+    currency: process.env.STRIPE_CURRENCY || "php",
     success_url: successUrl,
     cancel_url: cancelUrl,
     orderId: body.order_id,
+    lineItems,
     metadata: {
       user_id: userId.toString(),
     },
@@ -361,7 +371,4 @@ export default {
   refundPayment,
   createCheckoutSession,
 };
-
-
-
 

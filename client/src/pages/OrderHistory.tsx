@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOrders } from '../services/orders';
 import type { Order } from '../services/orders';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { formatCurrency } from '../lib/currency';
 
 export default function OrderHistory() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -37,7 +38,9 @@ export default function OrderHistory() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
+        </div>
       ) : orders.length > 0 ? (
         <div className="space-y-4">
           {orders.map((order) => {
@@ -107,7 +110,7 @@ export default function OrderHistory() {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">
-                      ${order.total_amount.toFixed(2)} • {new Date(order.created_at).toLocaleDateString()}
+                      {formatCurrency(order.total_amount)} • {new Date(order.created_at).toLocaleDateString()}
                     </p>
                     <p className="text-sm">{order.items.length} item(s)</p>
                   </div>
@@ -147,7 +150,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Amount</p>
-            <p className="font-semibold">${order.total_amount.toFixed(2)}</p>
+            <p className="font-semibold">{formatCurrency(order.total_amount)}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Date</p>
@@ -188,15 +191,15 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                         {hasDiscount ? (
                           <>
                             <p className="text-sm text-muted-foreground line-through">
-                              ${originalPrice.toFixed(2)}
+                              {formatCurrency(originalPrice)}
                             </p>
                             <p className="text-sm font-semibold">
-                              ${actualPrice.toFixed(2)} each
+                              {formatCurrency(actualPrice)} each
                             </p>
                           </>
                         ) : (
                           <p className="text-sm font-semibold">
-                            ${actualPrice.toFixed(2)} each
+                            {formatCurrency(actualPrice)} each
                           </p>
                         )}
                       </div>
@@ -204,10 +207,10 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                     <div className="text-right">
                       {hasDiscount && (
                         <p className="text-xs text-muted-foreground line-through mb-1">
-                          ${(item.quantity * originalPrice).toFixed(2)}
+                          {formatCurrency(item.quantity * originalPrice)}
                         </p>
                       )}
-                      <p className="font-semibold">${(item.quantity * actualPrice).toFixed(2)}</p>
+                      <p className="font-semibold">{formatCurrency(item.quantity * actualPrice)}</p>
                     </div>
                   </div>
                 );
@@ -244,4 +247,3 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
     </div>
   );
 }
-

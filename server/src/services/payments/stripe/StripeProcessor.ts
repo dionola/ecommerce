@@ -22,33 +22,37 @@ export class StripeProcessor implements IPaymentProcessor {
      * Create a checkout session for Stripe Checkout integration
      */
     async createCheckoutSession(params: {
-        amount: number;
         currency: string;
         success_url: string;
         cancel_url: string;
         orderId: number;
+        lineItems: Array<{
+            name: string;
+            unitAmount: number;
+            quantity: number;
+            imageUrl?: string;
+        }>;
         metadata?: Record<string, string>;
     }): Promise<{ checkoutUrl: string; sessionId: string }> {
         try {
             logger.info("Stripe: Creating checkout session", {
                 orderId: params.orderId,
-                amount: params.amount,
+                lineItemCount: params.lineItems.length,
             });
 
             const session = await this.stripe.checkout.sessions.create({
                 payment_method_types: ["card"],
-                line_items: [
-                    {
-                        price_data: {
-                            currency: params.currency,
-                            product_data: {
-                                name: `Order #${params.orderId}`,
-                            },
-                            unit_amount: params.amount,
+                line_items: params.lineItems.map((item) => ({
+                    price_data: {
+                        currency: params.currency,
+                        product_data: {
+                            name: item.name,
+                            ...(item.imageUrl ? { images: [item.imageUrl] } : {}),
                         },
-                        quantity: 1,
+                        unit_amount: item.unitAmount,
                     },
-                ],
+                    quantity: item.quantity,
+                })),
                 mode: "payment",
                 success_url: params.success_url,
                 cancel_url: params.cancel_url,

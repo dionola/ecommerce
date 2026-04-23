@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getWishlist, removeFromWishlist, type Wishlist as WishlistType } from '../services/wishlists';
-import { Heart, Trash2, ShoppingCart } from 'lucide-react';
+import { Heart, Trash2, ShoppingCart, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useCart } from '../contexts/CartContext';
 import { toast } from '../components/ui/toaster';
+import { formatCurrency } from '../lib/currency';
 
 export default function Wishlist() {
   const [wishlist, setWishlist] = useState<WishlistType | null>(null);
@@ -73,7 +74,9 @@ export default function Wishlist() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
+        </div>
       ) : wishlist && wishlist.items.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {wishlist.items.map((item) => {
@@ -96,7 +99,7 @@ export default function Wishlist() {
                       {product.name}
                     </h3>
                   </Link>
-                  <p className="text-lg font-bold mb-4">${product.base_price.toFixed(2)}</p>
+                  <p className="text-lg font-bold mb-4">{formatCurrency(product.base_price)}</p>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -129,4 +132,3 @@ export default function Wishlist() {
     </div>
   );
 }
-

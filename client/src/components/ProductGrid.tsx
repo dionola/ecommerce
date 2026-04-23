@@ -7,9 +7,10 @@ import { getProducts } from "../services/products"
 import { mapProductDtoToProduct } from "../types/product"
 import { ProductStatusBadge } from "./ProductStatusBadge"
 import { addToWishlist, removeFromWishlist, getWishlist } from "../services/wishlists"
-import { Heart, Grid3x3, List } from "lucide-react"
+import { Heart, Grid3x3, List, Loader2 } from "lucide-react"
 import { toast } from "./ui/toaster"
 import type { ProductFilters as FilterType } from "./ProductFilters"
+import { formatCurrency } from "../lib/currency"
 
 type ViewMode = "grid" | "list"
 
@@ -246,7 +247,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
 
       {loading && products.length === 0 ? (
         <div className="text-center text-muted-foreground py-20">
-          <div className="text-sm font-bold uppercase tracking-widest">Loading products...</div>
+          <Loader2 className="w-8 h-8 mx-auto animate-spin" />
         </div>
       ) : (
         <div className={viewMode === "grid" 
@@ -287,7 +288,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
                       Reference No. {product.id}
                     </p>
                   </div>
-                  <p className="font-bold text-lg tracking-tighter">${product.price.toFixed(2)}</p>
+                  <p className="font-bold text-lg tracking-tighter">{formatCurrency(product.price)}</p>
                 </div>
               </Link>
               {product.inStock && (
@@ -342,7 +343,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
                   </Link>
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="font-bold text-2xl tracking-tighter">${product.price.toFixed(2)}</p>
+                  <p className="font-bold text-2xl tracking-tighter">{formatCurrency(product.price)}</p>
                   {product.inStock && (
                     <button
                       onClick={(e) => {
@@ -366,7 +367,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
       {!loading && (
         <div ref={sentinelRef} className="h-10 flex items-center justify-center mt-12">
           {isLoadingMore && (
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading more products...</p>
+            <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
           )}
           {!hasMore && products.length > 0 && !isLoadingMore && (
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No more products</p>
@@ -376,4 +377,3 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
     </section>
   )
 }
-

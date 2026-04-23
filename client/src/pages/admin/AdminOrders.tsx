@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { getOrders, updateOrder, deleteOrder } from '../../services/orders';
 import { toast } from '../../components/ui/toaster';
 import type { Order } from '../../services/orders';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
+import { formatCurrency } from '../../lib/currency';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -66,7 +67,9 @@ export default function AdminOrders() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
+        </div>
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
@@ -83,7 +86,7 @@ export default function AdminOrders() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    ${order.total_amount.toFixed(2)} • {new Date(order.created_at).toLocaleDateString()}
+                    {formatCurrency(order.total_amount)} • {new Date(order.created_at).toLocaleDateString()}
                   </p>
                   <p className="text-sm">{order.items.length} item(s)</p>
                 </div>
@@ -147,7 +150,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Amount</p>
-            <p className="font-semibold">${order.total_amount.toFixed(2)}</p>
+            <p className="font-semibold">{formatCurrency(order.total_amount)}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Date</p>
@@ -161,10 +164,10 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                   <div className="flex-1">
                     <p className="font-semibold">{item.product.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      Quantity: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
+                      Quantity: {item.quantity} × {formatCurrency(item.price_at_purchase)}
                     </p>
                   </div>
-                  <p className="font-semibold">${(item.quantity * item.price_at_purchase).toFixed(2)}</p>
+                  <p className="font-semibold">{formatCurrency(item.quantity * item.price_at_purchase)}</p>
                 </div>
               ))}
             </div>
@@ -183,4 +186,3 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
     </div>
   );
 }
-

@@ -10,6 +10,7 @@ import {
 import { query } from "../models/databaseModel.js";
 import { NotFoundError } from "../errors/NotFoundError.js";
 import { logger } from "../utils/logger.js";
+import { fetchOrderById } from "../services/orders/orderHelpers.js";
 
 /**
  * Create a Stripe Checkout session
@@ -29,7 +30,7 @@ async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
 
   // Verify order exists and belongs to user
   const orderQuery = `
-    SELECT id, user_id, total_amount, status
+    SELECT id, user_id, status
     FROM orders
     WHERE id = $1
   `;
@@ -52,13 +53,22 @@ async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
     return;
   }
 
-  // Convert amount to cents (smallest currency unit)
-  const amountInCents = Math.round(order.total_amount * 100);
-
   // Get Stripe processor instance
   const stripeProcessor = paymentService.getProcessorInstance("stripe") as StripeProcessor;
   if (!stripeProcessor) {
     throw new Error("Stripe processor not available");
+  }
+
+  const fullOrder = await fetchOrderById(order.id, isAdmin ? undefined : userId);
+  const lineItems = fullOrder.items.map((item) => ({
+    name: item.product.name,
+    unitAmount: Math.round(item.price_at_purchase * 100),
+    quantity: item.quantity,
+    imageUrl: item.product.images?.find((image) => image.is_main)?.url || item.product.images?.[0]?.url,
+  }));
+
+  if (lineItems.length === 0) {
+    throw new Error(`Order ${order.id} has no items for checkout`);
   }
 
   // Determine success and cancel URLs
@@ -66,14 +76,14 @@ async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
   const successUrl = body.success_url || `${baseUrl}/checkout/return?order_id=${body.order_id}&status=success`;
   const cancelUrl = body.cancel_url || `${baseUrl}/checkout?order_id=${body.order_id}&status=canceled`;
 
-  const currency = process.env.STRIPE_CURRENCY || "usd";
+  const currency = process.env.STRIPE_CURRENCY || "php";
   // Create checkout session
   const checkoutSession = await stripeProcessor.createCheckoutSession({
-    amount: amountInCents,
     currency,
     success_url: successUrl,
     cancel_url: cancelUrl,
     orderId: order.id,
+    lineItems,
     metadata: {
       user_id: userId.toString(),
     },

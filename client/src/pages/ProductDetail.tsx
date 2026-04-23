@@ -17,6 +17,7 @@ import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 import { addToWishlist, removeFromWishlist, getWishlist } from "../services/wishlists"
 import { toast } from "../components/ui/toaster"
+import { formatCurrency } from "../lib/currency"
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>()
@@ -226,7 +227,7 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <p className="text-3xl font-bold tracking-tighter mb-12">${product.price.toFixed(2)}</p>
+            <p className="text-3xl font-bold tracking-tighter mb-12">{formatCurrency(product.price)}</p>
 
             <div className="space-y-8 text-sm text-muted-foreground uppercase tracking-widest leading-relaxed border-t border-border pt-8">
               {product.description && (
@@ -277,4 +278,3 @@ export default function ProductDetail() {
     </div>
   )
 }
-

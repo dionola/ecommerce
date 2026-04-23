@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { getProducts } from '../../services/products';
 import { createProduct, updateProduct, deleteProduct } from '../../services/admin';
 import type { CreateProductData } from '../../services/admin';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
 import type { ProductDtoType } from '../../types/product';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { toast } from '../../components/ui/toaster';
+import { formatCurrency } from '../../lib/currency';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<ProductDtoType[]>([]);
@@ -105,7 +106,9 @@ export default function AdminProducts() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
@@ -120,7 +123,7 @@ export default function AdminProducts() {
                 )}
               </div>
               <h3 className="font-semibold mb-2">{product.name}</h3>
-              <p className="text-sm text-muted-foreground mb-4">${product.base_price}</p>
+              <p className="text-sm text-muted-foreground mb-4">{formatCurrency(product.base_price)}</p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -238,4 +241,3 @@ function ProductModal({
     </div>
   );
 }
-

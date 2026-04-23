@@ -10,6 +10,7 @@ import { Label } from '../components/ui/label';
 import { ShoppingBag, ArrowLeft } from 'lucide-react';
 import { mapProductDtoToProduct } from '../types/product';
 import { toast } from '../components/ui/toaster';
+import { formatCurrency } from '../lib/currency';
 // type PaymentMethod is no longer needed as we only support 'checkout'
 
 export default function Checkout() {
@@ -269,9 +270,9 @@ export default function Checkout() {
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold mb-1">{product.name}</h3>
                     <p className="text-xs text-muted-foreground mb-2">
-                      Quantity: {item.quantity} × ${product.price.toFixed(2)}
+                      Quantity: {item.quantity} × {formatCurrency(product.price)}
                     </p>
-                    <p className="text-sm font-bold">${(product.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-sm font-bold">{formatCurrency(product.price * item.quantity)}</p>
                   </div>
                 </div>
               );
@@ -281,19 +282,19 @@ export default function Checkout() {
           <div className="border-t border-border pt-6 space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-semibold">${subtotal.toFixed(2)}</span>
+              <span className="font-semibold">{formatCurrency(subtotal)}</span>
             </div>
             {appliedPromo && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   Discount ({appliedPromo.promo.code})
                 </span>
-                <span className="font-semibold text-green-600">-${discount.toFixed(2)}</span>
+                <span className="font-semibold text-green-600">- {formatCurrency(discount)}</span>
               </div>
             )}
             <div className="flex justify-between text-lg font-bold border-t border-border pt-4">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{formatCurrency(total)}</span>
             </div>
           </div>
         </div>
