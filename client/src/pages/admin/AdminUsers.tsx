@@ -1,24 +1,65 @@
-import { useState } from 'react';
-import { createUser } from '../../services/admin';
-import type { CreateUserData } from '../../services/admin';
-import { Users, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createUser, getUsers, updateUserRole } from '../../services/admin';
+import type { AdminUser, CreateUserData } from '../../services/admin';
+import { Users, Plus, Shield, ShieldCheck } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from '../../components/ui/toaster';
+import { formatDate } from '../../lib/utils';
 
 export default function AdminUsers() {
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { user } = useAuth();
   const isSuperadmin = user?.groups?.includes('superadmin');
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await getUsers();
+      setUsers(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to load users',
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePromote = async (targetUser: AdminUser, role: 'admin' | 'superadmin') => {
+    try {
+      const updatedUser = await updateUserRole(targetUser.id, role);
+      setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)));
+      toast({
+        title: "Role updated",
+        description: `${targetUser.email} is now ${role}`,
+        variant: "success",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to update user role',
+        variant: "destructive",
+      })
+    }
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-12">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-4xl font-bold mb-2">Users</h1>
-          <p className="text-muted-foreground">Create admin and superadmin users</p>
+          <p className="text-muted-foreground">Review users, order activity, and promote existing accounts to admin</p>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -26,18 +67,66 @@ export default function AdminUsers() {
         </Button>
       </div>
 
-      <div className="border border-border rounded-lg p-8 text-center">
-        <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-muted-foreground">
-          Use the "Create User" button to add new admin or superadmin users.
-          {!isSuperadmin && ' Note: Admins can only create admin users.'}
-        </p>
+      <div className="border border-border rounded-lg overflow-hidden">
+        <div className="grid grid-cols-[minmax(0,2fr)_120px_120px_140px_180px] gap-4 px-6 py-4 text-xs uppercase tracking-widest text-muted-foreground border-b border-border bg-secondary/30">
+          <div>User</div>
+          <div>Role</div>
+          <div>Orders</div>
+          <div>Items</div>
+          <div>Actions</div>
+        </div>
+
+        {loading ? (
+          <div className="p-8 text-sm text-muted-foreground">Loading users...</div>
+        ) : users.length === 0 ? (
+          <div className="p-8 text-center">
+            <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">No users found yet.</p>
+          </div>
+        ) : (
+          <div>
+            {users.map((listedUser) => (
+              <div
+                key={listedUser.id}
+                className="grid grid-cols-[minmax(0,2fr)_120px_120px_140px_180px] gap-4 px-6 py-4 border-b border-border last:border-b-0 items-center"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{listedUser.email}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {listedUser.fullName || 'No name'} • Joined {formatDate(listedUser.createdAt)}
+                  </p>
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-2 text-sm capitalize">
+                    {listedUser.role === 'superadmin' ? <ShieldCheck className="w-4 h-4 text-amber-500" /> : <Shield className="w-4 h-4 text-muted-foreground" />}
+                    {listedUser.role}
+                  </span>
+                </div>
+                <div className="text-sm">{listedUser.orderCount}</div>
+                <div className="text-sm">{listedUser.totalItemsOrdered}</div>
+                <div className="flex flex-wrap gap-2">
+                  {listedUser.role === 'customer' && (
+                    <Button size="sm" variant="outline" onClick={() => handlePromote(listedUser, 'admin')}>
+                      Make Admin
+                    </Button>
+                  )}
+                  {isSuperadmin && listedUser.role !== 'superadmin' && (
+                    <Button size="sm" variant="outline" onClick={() => handlePromote(listedUser, 'superadmin')}>
+                      Make Superadmin
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {isCreateModalOpen && (
         <CreateUserModal
           onClose={() => setIsCreateModalOpen(false)}
           isSuperadmin={isSuperadmin || false}
+          onCreated={loadUsers}
         />
       )}
     </div>
@@ -47,9 +136,11 @@ export default function AdminUsers() {
 function CreateUserModal({
   onClose,
   isSuperadmin,
+  onCreated,
 }: {
   onClose: () => void;
   isSuperadmin: boolean;
+  onCreated: () => Promise<void>;
 }) {
   const [formData, setFormData] = useState<CreateUserData>({
     email: '',
@@ -69,6 +160,7 @@ function CreateUserModal({
         description: "User has been created successfully",
         variant: "success",
       })
+      await onCreated()
       onClose();
     } catch (error: any) {
       toast({
@@ -104,7 +196,6 @@ function CreateUserModal({
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              minLength={8}
             />
           </div>
           <div>
@@ -146,4 +237,3 @@ function CreateUserModal({
     </div>
   );
 }
-

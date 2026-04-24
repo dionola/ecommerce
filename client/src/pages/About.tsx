@@ -6,22 +6,20 @@ export default function About() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Info className="w-8 h-8" />
-          <h1 className="text-4xl font-bold">About Us</h1>
+          <h1 className="text-4xl font-bold">About dionola</h1>
         </div>
-        <p className="text-muted-foreground">Learn more about Objekt</p>
+        <p className="text-muted-foreground">Context for Stephen&apos;s test e-commerce storefront</p>
       </div>
 
       <div className="prose prose-sm max-w-none">
         <p className="text-lg mb-6">
-          Welcome to Objekt, your premier destination for curated home and lifestyle products.
+          dionola is Stephen&apos;s test e-commerce site, built to exercise a full storefront flow from browsing through checkout.
         </p>
         <p className="mb-4">
-          We are dedicated to bringing you carefully selected items that combine quality, style, and functionality.
-          Our collection features products from trusted manufacturers around the world.
+          The products and imagery on this site are sourced from the H&amp;M dataset sample published by Luminati, which makes it a practical demo catalog for UI, cart, checkout, and admin workflows.
         </p>
         <p className="mb-4">
-          At Objekt, we believe in providing an exceptional shopping experience with attention to detail,
-          from product selection to customer service.
+          It&apos;s a working sandbox rather than a finished production retail brand, so the focus here is on testing the experience, integrations, and layout polish.
         </p>
       </div>
     </div>

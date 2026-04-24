@@ -3,7 +3,7 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { useState } from "react"
-import { X } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { Separator } from "./ui/separator"
 
@@ -175,16 +175,11 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md p-0 border-none rounded-none overflow-hidden">
         <DialogHeader className="p-8 border-b border-border bg-secondary">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold uppercase tracking-tighter">
-              {mode === "login" && "Sign In"}
-              {mode === "register" && "Create Account"}
-              {mode === "confirm" && "Confirm Email"}
-            </DialogTitle>
-            <button onClick={handleClose} className="p-2 hover:bg-background transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <DialogTitle className="text-2xl font-bold uppercase tracking-tighter">
+            {mode === "login" && "Sign In"}
+            {mode === "register" && "Create Account"}
+            {mode === "confirm" && "Confirm Email"}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={mode === "login" ? handleLogin : mode === "register" ? handleSignUp : handleConfirmSignUp}>
@@ -305,7 +300,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               disabled={loading}
               className="w-full h-14 rounded-none bg-black text-white text-xs font-bold uppercase tracking-[0.3em] hover:bg-zinc-800 transition-all"
             >
-              {loading ? "Loading..." : mode === "login" ? "Secure Login" : mode === "register" ? "Initialize Account" : "Confirm"}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === "login" ? "Secure Login" : mode === "register" ? "Initialize Account" : "Confirm"}
             </Button>
 
             {mode !== "confirm" && (

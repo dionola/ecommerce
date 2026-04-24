@@ -6,39 +6,36 @@ export default function Shipping() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Truck className="w-8 h-8" />
-          <h1 className="text-4xl font-bold">Shipping Information</h1>
+          <h1 className="text-4xl font-bold">Shipping</h1>
         </div>
-        <p className="text-muted-foreground">Delivery options and policies</p>
+        <p className="text-muted-foreground">Demo notes for checkout and fulfillment behavior</p>
       </div>
 
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold mb-3">Shipping Options</h2>
           <p className="text-muted-foreground mb-4">
-            We offer various shipping options to meet your needs. Shipping costs are calculated at checkout
-            based on your location and selected shipping method.
+            dionola is a test storefront, so shipping rates and options are meant to exercise the checkout flow rather than represent a live fulfillment operation.
           </p>
         </div>
 
         <div>
           <h2 className="text-2xl font-semibold mb-3">Processing Time</h2>
           <p className="text-muted-foreground mb-4">
-            Orders are typically processed within 1-2 business days. You will receive a confirmation email
-            once your order has been shipped.
+            Order creation, payment, and status updates are useful for testing the purchase lifecycle, but shipment timelines here should be treated as sample data.
           </p>
         </div>
 
         <div>
           <h2 className="text-2xl font-semibold mb-3">Tracking</h2>
           <p className="text-muted-foreground mb-4">
-            Once your order ships, you'll receive a tracking number via email to monitor your package's journey.
+            If you extend this project with tracking, carrier updates, or notification emails, this page is where the final policy copy would live.
           </p>
         </div>
       </div>
     </div>
   );
 }
-
 
 
 

@@ -8,6 +8,32 @@ import { Label } from '../../components/ui/label';
 import { toast } from '../../components/ui/toaster';
 import { getCategories } from '../../services/categories';
 
+function AdminBannerSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <div className="h-4 w-32 bg-secondary rounded-sm" />
+              <div className="h-12 w-full bg-secondary rounded-sm" />
+            </div>
+          ))}
+        </div>
+        <div className="space-y-4">
+          <div className="h-4 w-24 bg-secondary rounded-sm" />
+          <div className="border border-border rounded-lg p-6 space-y-4">
+            <div className="h-8 w-3/4 bg-secondary rounded-sm" />
+            <div className="h-4 w-full bg-secondary rounded-sm" />
+            <div className="aspect-video bg-secondary rounded" />
+          </div>
+        </div>
+      </div>
+      <div className="h-12 w-40 bg-secondary rounded-sm" />
+    </div>
+  )
+}
+
 export default function AdminBanner() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -75,7 +101,7 @@ export default function AdminBanner() {
   if (loading) {
     return (
       <div className="max-w-[1400px] mx-auto px-6 py-12">
-        <div className="text-center py-12">Loading...</div>
+        <AdminBannerSkeleton />
       </div>
     );
   }
@@ -101,7 +127,7 @@ export default function AdminBanner() {
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
                 className="rounded-none border-border h-12"
-                placeholder="The Art of Living Well"
+                placeholder="Stephen's<br />Test Storefront"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Use <br /> for line breaks (e.g., "The Art of<br />Living Well")
@@ -117,7 +143,7 @@ export default function AdminBanner() {
                 required
                 rows={4}
                 className="w-full p-3 border border-border rounded-none resize-none"
-                placeholder="A curated selection of home essentials..."
+                placeholder="dionola showcases apparel and imagery from the H&M dataset sample..."
               />
             </div>
 
@@ -161,7 +187,7 @@ export default function AdminBanner() {
                 value={formData.button_text || ''}
                 onChange={(e) => setFormData({ ...formData, button_text: e.target.value || null })}
                 className="rounded-none border-border h-12"
-                placeholder="View Collection — 2026"
+                placeholder="Browse the Catalog"
               />
             </div>
           </div>
@@ -219,8 +245,6 @@ export default function AdminBanner() {
     </div>
   );
 }
-
-
 
 
 

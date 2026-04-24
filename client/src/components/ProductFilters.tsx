@@ -153,7 +153,7 @@ export function ProductFilters({ onFilterChange, initialCategory, currentFilters
         <div className="relative flex-1 min-w-[300px]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search Collection..."
+            placeholder="Search Catalog..."
             value={searchValue}
             className="pl-12 h-12 rounded-none border-none bg-secondary text-xs uppercase font-bold tracking-widest focus-visible:ring-0"
             onChange={(e) => {
@@ -394,4 +394,3 @@ export function ProductFilters({ onFilterChange, initialCategory, currentFilters
     </div>
   )
 }
-

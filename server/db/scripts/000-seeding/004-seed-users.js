@@ -23,9 +23,9 @@ const usersToSeed = [
         groups: [],
     },
     {
-        email: 'admin@example.com',
-        password: 'TestAdmin123!',
-        fullName: 'Test Admin',
+        email: 'admin@admin.com',
+        password: 'admin',
+        fullName: 'Default Admin',
         groups: ['admin'],
     },
     {
@@ -113,11 +113,11 @@ async function addUserToGroups(email, groups) {
         }
     }
 }
-async function createDbUser(client, cognitoSub, email, fullName) {
-    await client.query(`INSERT INTO users (cognito_sub, email, full_name)
-     VALUES ($1, $2, $3)
+async function createDbUser(client, cognitoSub, email, fullName, role) {
+    await client.query(`INSERT INTO users (cognito_sub, email, full_name, role)
+     VALUES ($1, $2, $3, $4)
      ON CONFLICT (cognito_sub) DO UPDATE
-     SET email = EXCLUDED.email, full_name = EXCLUDED.full_name`, [cognitoSub, email, fullName]);
+     SET email = EXCLUDED.email, full_name = EXCLUDED.full_name, role = EXCLUDED.role`, [cognitoSub, email, fullName, role]);
     console.log(`  ✓ Created/updated DB record for ${email}`);
 }
 async function seedUsers() {
@@ -136,7 +136,11 @@ async function seedUsers() {
                     await addUserToGroups(userData.email, userData.groups);
                 }
                 // Create DB record
-                await createDbUser(dbClient, cognitoSub, userData.email, userData.fullName);
+                await createDbUser(dbClient, cognitoSub, userData.email, userData.fullName, userData.groups?.includes('superadmin')
+                    ? 'superadmin'
+                    : userData.groups?.includes('admin')
+                        ? 'admin'
+                        : 'customer');
                 console.log(`✅ Successfully seeded user: ${userData.email}\n`);
             }
             catch (error) {

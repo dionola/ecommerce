@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../middleware/auth.js";
-import { createAdminUser } from "../services/users/userManagementService.js";
-import { CreateUserDtoType } from "../dtos/userDto.js";
+import { createAdminUser, listUsers, updateExistingUserRole } from "../services/users/userManagementService.js";
+import { CreateUserDtoType, UpdateUserRoleDtoType, UserIdParamDtoType } from "../dtos/userDto.js";
 import { ValidationError } from "../errors/ValidationError.js";
 import { logger } from "../utils/logger.js";
 
@@ -56,7 +56,45 @@ async function createUser(req: AuthenticatedRequest, res: Response): Promise<voi
   }
 }
 
+async function getUsers(_req: AuthenticatedRequest, res: Response): Promise<void> {
+  const users = await listUsers();
+  res.json(users);
+}
+
+async function updateUserRole(req: AuthenticatedRequest, res: Response): Promise<void> {
+  if (!req.user) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
+  const params = res.locals.params as UserIdParamDtoType;
+  const body = res.locals.body as UpdateUserRoleDtoType;
+
+  try {
+    const creatorGroups = req.user["cognito:groups"] || [];
+    const creatorRole = creatorGroups.includes("superadmin")
+      ? "superadmin"
+      : creatorGroups.includes("admin")
+      ? "admin"
+      : undefined;
+
+    const result = await updateExistingUserRole(params.id, body.role, creatorRole);
+    res.json(result);
+  } catch (error: any) {
+    logger.error("Error in updateUserRole controller:", error);
+
+    if (error instanceof ValidationError) {
+      res.status(400).json({ message: error.message });
+      return;
+    }
+
+    res.status(500).json({ message: "Failed to update user role", error: error.message });
+  }
+}
+
 export default {
   createUser,
+  getUsers,
+  updateUserRole,
 };
 

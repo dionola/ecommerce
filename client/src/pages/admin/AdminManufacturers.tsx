@@ -7,6 +7,25 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { toast } from '../../components/ui/toaster';
 
+function AdminManufacturersSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div key={index} className="border border-border rounded-lg p-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 bg-secondary rounded-sm" />
+            <div className="h-5 w-32 bg-secondary rounded-sm" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-9 w-9 bg-secondary rounded-sm" />
+            <div className="h-9 w-9 bg-secondary rounded-sm" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function AdminManufacturers() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +104,7 @@ export default function AdminManufacturers() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <AdminManufacturersSkeleton />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {manufacturers.map((manufacturer) => (
@@ -174,4 +193,3 @@ function ManufacturerModal({
     </div>
   );
 }
-

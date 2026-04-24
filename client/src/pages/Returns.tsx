@@ -6,39 +6,36 @@ export default function Returns() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <RotateCcw className="w-8 h-8" />
-          <h1 className="text-4xl font-bold">Returns & Exchanges</h1>
+          <h1 className="text-4xl font-bold">Returns</h1>
         </div>
-        <p className="text-muted-foreground">Our return and exchange policy</p>
+        <p className="text-muted-foreground">Demo guidance for testing post-purchase flows</p>
       </div>
 
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold mb-3">Return Policy</h2>
           <p className="text-muted-foreground mb-4">
-            We accept returns within 30 days of purchase. Items must be in original condition with tags attached.
+            This storefront is a working demo, so return windows and eligibility rules should be treated as placeholder policy content.
           </p>
         </div>
 
         <div>
           <h2 className="text-2xl font-semibold mb-3">How to Return</h2>
           <p className="text-muted-foreground mb-4">
-            To initiate a return, please contact our customer service team. We'll provide you with a return
-            authorization and shipping instructions.
+            If you want to model a true return flow later, this is the right place to explain approval, labeling, and refund steps for customers.
           </p>
         </div>
 
         <div>
           <h2 className="text-2xl font-semibold mb-3">Refunds</h2>
           <p className="text-muted-foreground mb-4">
-            Refunds will be processed to your original payment method within 5-10 business days after we
-            receive and inspect the returned item.
+            Refund timelines in this environment are illustrative only and mainly exist to support the layout and navigation structure.
           </p>
         </div>
       </div>
     </div>
   );
 }
-
 
 
 

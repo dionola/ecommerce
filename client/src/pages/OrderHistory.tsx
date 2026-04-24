@@ -2,9 +2,31 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOrders } from '../services/orders';
 import type { Order } from '../services/orders';
-import { ShoppingBag, Loader2 } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { formatCurrency } from '../lib/currency';
+
+function OrderHistorySkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="border border-border rounded-lg p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="h-16 w-16 bg-secondary rounded" />
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="h-5 w-32 bg-secondary rounded-sm" />
+                <div className="h-5 w-20 bg-secondary rounded-sm" />
+              </div>
+              <div className="h-4 w-56 bg-secondary rounded-sm" />
+              <div className="h-4 w-24 bg-secondary rounded-sm" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function OrderHistory() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -38,9 +60,7 @@ export default function OrderHistory() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <Loader2 className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
-        </div>
+        <OrderHistorySkeleton />
       ) : orders.length > 0 ? (
         <div className="space-y-4">
           {orders.map((order) => {

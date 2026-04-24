@@ -18,6 +18,27 @@ function getBearerToken(header?: string): string | null {
   return token;
 }
 
+async function getDatabaseRole(sub: string, email?: string): Promise<"customer" | "admin" | "superadmin" | null> {
+  try {
+    const { query } = await import("../models/databaseModel.js");
+    const result = await query(
+      `
+        SELECT role
+        FROM users
+        WHERE cognito_sub = $1 OR ($2 IS NOT NULL AND email = $2)
+        ORDER BY id DESC
+        LIMIT 1
+      `,
+      [sub, email ?? null]
+    );
+
+    const role = result.rows[0]?.role;
+    return role === "customer" || role === "admin" || role === "superadmin" ? role : null;
+  } catch {
+    return null;
+  }
+}
+
 async function verifyGoogleToken(token: string): Promise<AuthenticatedUser> {
   const audience =
     process.env.GOOGLE_CLIENT_ID ||
@@ -39,11 +60,14 @@ async function verifyGoogleToken(token: string): Promise<AuthenticatedUser> {
     throw new Error("Google token payload missing subject");
   }
 
+  const email = typeof payload.email === "string" ? payload.email : undefined;
+  const databaseRole = await getDatabaseRole(`google_${payload.sub}`, email);
+
   return {
     ...payload,
     sub: `google_${payload.sub}`,
-    email: typeof payload.email === "string" ? payload.email : undefined,
-    "cognito:groups": [],
+    email,
+    "cognito:groups": databaseRole && databaseRole !== "customer" ? [databaseRole] : [],
   };
 }
 
@@ -51,14 +75,19 @@ async function verifyAccessToken(token: string): Promise<AuthenticatedUser> {
   try {
     const { cognitoVerifier } = await import("../config/cognito.js");
     const payload = await cognitoVerifier.verify(token);
+    const email = typeof payload.email === "string" ? payload.email : undefined;
+    const databaseRole = await getDatabaseRole(payload.sub, email);
+    const tokenGroups = Array.isArray(payload["cognito:groups"])
+      ? payload["cognito:groups"].filter((group): group is string => typeof group === "string")
+      : [];
 
     return {
       ...payload,
       sub: payload.sub,
-      email: typeof payload.email === "string" ? payload.email : undefined,
-      "cognito:groups": Array.isArray(payload["cognito:groups"])
-        ? payload["cognito:groups"].filter((group): group is string => typeof group === "string")
-        : [],
+      email,
+      "cognito:groups": databaseRole && databaseRole !== "customer"
+        ? [...new Set([...tokenGroups, databaseRole])]
+        : tokenGroups,
     };
   } catch {
     return verifyGoogleToken(token);

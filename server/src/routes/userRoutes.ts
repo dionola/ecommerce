@@ -1,11 +1,18 @@
 import { Router } from "express";
 import userController from "../controllers/userController.js";
-import { validateRequestBody } from "../middleware/validate.js";
+import { validateRequestBody, validateRequestParams } from "../middleware/validate.js";
 import { authenticate } from "../middleware/auth.js";
 import { authorize } from "../middleware/authorize.js";
-import { CreateUserDto } from "../dtos/userDto.js";
+import { CreateUserDto, UpdateUserRoleDto, UserIdParamDto } from "../dtos/userDto.js";
 
 const router = Router();
+
+router.get(
+  "/",
+  authenticate,
+  authorize("admin", "superadmin"),
+  userController.getUsers
+);
 
 /**
  * Create a new admin or superadmin user
@@ -22,5 +29,13 @@ router.post(
   userController.createUser
 );
 
-export default router;
+router.patch(
+  "/:id/role",
+  authenticate,
+  authorize("admin", "superadmin"),
+  validateRequestParams(UserIdParamDto),
+  validateRequestBody(UpdateUserRoleDto),
+  userController.updateUserRole
+);
 
+export default router;

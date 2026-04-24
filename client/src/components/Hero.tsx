@@ -18,11 +18,11 @@ export function Hero() {
         // Use default banner on error
         setBanner({
           id: 0,
-          title: "The Art of Living Well",
-          description: "A curated selection of home essentials designed for longevity, utility, and aesthetic permanence.",
+          title: "Stephen's<br />Test Storefront",
+          description: "dionola showcases apparel and imagery from the H&M dataset sample in a polished e-commerce demo.",
           image_url: "https://image.hm.com/assets/hm/1a/3c/1a3c77208f05c2cf02bbdd5d0d71016abcd23548.jpg?imwidth=2160",
           category: null,
-          button_text: "View Collection — 2026",
+          button_text: "Browse the Catalog",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -54,7 +54,21 @@ export function Hero() {
   if (loading || !banner) {
     return (
       <section className="pt-32 pb-20 px-6 max-w-[1400px] mx-auto">
-        <div className="text-center py-12">Loading...</div>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-end animate-pulse">
+          <div className="md:col-span-8 space-y-4">
+            <div className="h-16 md:h-24 lg:h-28 w-11/12 bg-secondary rounded-sm" />
+            <div className="h-16 md:h-24 lg:h-28 w-4/5 bg-secondary rounded-sm" />
+            <div className="h-16 md:h-24 lg:h-28 w-3/5 bg-secondary rounded-sm" />
+          </div>
+          <div className="md:col-span-4 pb-4 space-y-3">
+            <div className="h-5 w-full bg-secondary rounded-sm" />
+            <div className="h-5 w-5/6 bg-secondary rounded-sm" />
+            <div className="h-5 w-2/3 bg-secondary rounded-sm" />
+          </div>
+        </div>
+        <div className="mt-12 h-[60vh] w-full bg-secondary rounded-sm animate-pulse relative overflow-hidden">
+          <div className="absolute bottom-8 left-8 h-12 w-48 bg-background/70 rounded-sm" />
+        </div>
       </section>
     );
   }
@@ -81,7 +95,7 @@ export function Hero() {
       <div className="mt-12 h-[60vh] w-full bg-secondary overflow-hidden relative group">
         <img
           src={banner.image_url}
-          alt="Featured Collection"
+          alt="Featured catalog"
           className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
         />
         <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
@@ -99,4 +113,3 @@ export function Hero() {
     </section>
   );
 }
-

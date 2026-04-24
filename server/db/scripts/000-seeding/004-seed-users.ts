@@ -34,9 +34,9 @@ const usersToSeed: UserSeedData[] = [
     groups: [],
   },
   {
-    email: 'admin@example.com',
-    password: 'TestAdmin123!',
-    fullName: 'Test Admin',
+    email: 'admin@admin.com',
+    password: 'admin',
+    fullName: 'Default Admin',
     groups: ['admin'],
   },
   {
@@ -152,14 +152,15 @@ async function createDbUser(
   client: pg.PoolClient,
   cognitoSub: string,
   email: string,
-  fullName: string
+  fullName: string,
+  role: string
 ): Promise<void> {
   await client.query(
-    `INSERT INTO users (cognito_sub, email, full_name)
-     VALUES ($1, $2, $3)
+    `INSERT INTO users (cognito_sub, email, full_name, role)
+     VALUES ($1, $2, $3, $4)
      ON CONFLICT (cognito_sub) DO UPDATE
-     SET email = EXCLUDED.email, full_name = EXCLUDED.full_name`,
-    [cognitoSub, email, fullName]
+     SET email = EXCLUDED.email, full_name = EXCLUDED.full_name, role = EXCLUDED.role`,
+    [cognitoSub, email, fullName, role]
   );
   console.log(`  ✓ Created/updated DB record for ${email}`);
 }
@@ -189,7 +190,17 @@ async function seedUsers() {
         }
 
         // Create DB record
-        await createDbUser(dbClient, cognitoSub, userData.email, userData.fullName);
+        await createDbUser(
+          dbClient,
+          cognitoSub,
+          userData.email,
+          userData.fullName,
+          userData.groups?.includes('superadmin')
+            ? 'superadmin'
+            : userData.groups?.includes('admin')
+            ? 'admin'
+            : 'customer'
+        );
 
         console.log(`✅ Successfully seeded user: ${userData.email}\n`);
       } catch (error: any) {
@@ -214,4 +225,3 @@ seedUsers().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
-

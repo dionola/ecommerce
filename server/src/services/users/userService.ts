@@ -63,8 +63,8 @@ export async function getOrCreateUser(
   
   // Create new user
   const createUserQuery = `
-    INSERT INTO users (cognito_sub, email, full_name)
-    VALUES ($1, $2, $3)
+    INSERT INTO users (cognito_sub, email, full_name, role)
+    VALUES ($1, $2, $3, 'customer')
     RETURNING id
   `;
   
@@ -78,4 +78,3 @@ export async function getOrCreateUser(
   
   return newUser.rows[0].id;
 }
-

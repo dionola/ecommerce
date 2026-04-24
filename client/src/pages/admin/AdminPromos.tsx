@@ -6,6 +6,28 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { toast } from '../../components/ui/toaster';
+import { formatCurrency } from '../../lib/currency';
+
+function AdminPromosSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div key={index} className="border border-border rounded-lg p-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 bg-secondary rounded-sm" />
+            <div className="h-5 w-24 bg-secondary rounded-sm" />
+          </div>
+          <div className="h-4 w-24 bg-secondary rounded-sm" />
+          <div className="h-4 w-32 bg-secondary rounded-sm" />
+          <div className="flex gap-2">
+            <div className="h-9 w-9 bg-secondary rounded-sm" />
+            <div className="h-9 w-9 bg-secondary rounded-sm" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function AdminPromos() {
   const [promos, setPromos] = useState<Promo[]>([]);
@@ -103,7 +125,7 @@ export default function AdminPromos() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <AdminPromosSkeleton />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {promos.map((promo) => (
@@ -113,7 +135,7 @@ export default function AdminPromos() {
                 <h3 className="font-semibold">{promo.code}</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-2">
-                {promo.discount_type === 'percentage' ? `${promo.discount_value}%` : `$${promo.discount_value}`} off
+                {promo.discount_type === 'percentage' ? `${promo.discount_value}%` : `${formatCurrency(promo.discount_value)} off`}
               </p>
               {promo.active_until && (
                 <p className="text-xs text-muted-foreground mb-4">
@@ -237,4 +259,3 @@ function PromoModal({
     </div>
   );
 }
-

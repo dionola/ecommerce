@@ -37,14 +37,14 @@ export function Navbar() {
       <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-12">
           <Link to="/" className="text-2xl font-bold tracking-tighter uppercase">
-            Objekt
+            dionola
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-muted-foreground">
             <Link
               to="/#collection"
               className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
             >
-              Collection
+              Catalog
             </Link>
             <Link to="/about" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
               About
@@ -223,7 +223,7 @@ export function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
               className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
-              Collection
+              Catalog
             </Link>
             <Link
               to="/about"
@@ -309,4 +309,3 @@ export function Navbar() {
     </nav>
   )
 }
-

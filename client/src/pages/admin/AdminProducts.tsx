@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getProducts } from '../../services/products';
 import { createProduct, updateProduct, deleteProduct } from '../../services/admin';
 import type { CreateProductData } from '../../services/admin';
-import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, AlertTriangle } from 'lucide-react';
 import type { ProductDtoType } from '../../types/product';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -10,11 +10,30 @@ import { Label } from '../../components/ui/label';
 import { toast } from '../../components/ui/toaster';
 import { formatCurrency } from '../../lib/currency';
 
+function AdminProductsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div key={index} className="border border-border rounded-lg p-4 space-y-4">
+          <div className="w-full h-48 bg-secondary rounded" />
+          <div className="h-5 w-3/4 bg-secondary rounded-sm" />
+          <div className="h-4 w-24 bg-secondary rounded-sm" />
+          <div className="flex gap-2">
+            <div className="h-9 w-9 bg-secondary rounded-sm" />
+            <div className="h-9 w-9 bg-secondary rounded-sm" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function AdminProducts() {
   const [products, setProducts] = useState<ProductDtoType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductDtoType | null>(null);
+  const lowStockThreshold = 5;
 
   useEffect(() => {
     loadProducts();
@@ -105,10 +124,27 @@ export default function AdminProducts() {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="text-center py-12">
-          <Loader2 className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
+      {!loading && (
+        <div className="mb-8 flex flex-wrap gap-4">
+          <div className="border border-border rounded-lg px-4 py-3 min-w-40">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Total Products</p>
+            <p className="text-2xl font-bold">{products.length}</p>
+          </div>
+          <div className="border border-amber-500/30 bg-amber-500/5 rounded-lg px-4 py-3 min-w-40">
+            <p className="text-xs uppercase tracking-widest text-amber-700 mb-1">Low Stock</p>
+            <p className="text-2xl font-bold">
+              {products.filter((product) => product.stock_quantity > 0 && product.stock_quantity <= lowStockThreshold).length}
+            </p>
+          </div>
+          <div className="border border-destructive/30 bg-destructive/5 rounded-lg px-4 py-3 min-w-40">
+            <p className="text-xs uppercase tracking-widest text-destructive mb-1">Out of Stock</p>
+            <p className="text-2xl font-bold">{products.filter((product) => product.stock_quantity === 0).length}</p>
+          </div>
         </div>
+      )}
+
+      {loading ? (
+        <AdminProductsSkeleton />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
@@ -123,7 +159,21 @@ export default function AdminProducts() {
                 )}
               </div>
               <h3 className="font-semibold mb-2">{product.name}</h3>
-              <p className="text-sm text-muted-foreground mb-4">{formatCurrency(product.base_price)}</p>
+              <p className="text-sm text-muted-foreground mb-2">{formatCurrency(product.base_price)}</p>
+              <div className="flex items-center justify-between mb-4 text-sm">
+                <span className="text-muted-foreground">Stock: {product.stock_quantity}</span>
+                {product.stock_quantity === 0 ? (
+                  <span className="inline-flex items-center gap-1 text-destructive">
+                    <AlertTriangle className="w-4 h-4" />
+                    Out
+                  </span>
+                ) : product.stock_quantity <= lowStockThreshold ? (
+                  <span className="inline-flex items-center gap-1 text-amber-600">
+                    <AlertTriangle className="w-4 h-4" />
+                    Low
+                  </span>
+                ) : null}
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"

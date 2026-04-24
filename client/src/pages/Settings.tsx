@@ -7,6 +7,31 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 
+function SettingsSkeleton() {
+  return (
+    <div className="max-w-2xl space-y-8 animate-pulse">
+      <div className="border border-border rounded-lg p-6 space-y-4">
+        <div className="h-7 w-48 bg-secondary rounded-sm" />
+        <div className="h-10 w-full bg-secondary rounded-sm" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-10 w-full bg-secondary rounded-sm" />
+          <div className="h-10 w-full bg-secondary rounded-sm" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-10 w-full bg-secondary rounded-sm" />
+          <div className="h-10 w-full bg-secondary rounded-sm" />
+        </div>
+      </div>
+      <div className="border border-border rounded-lg p-6 space-y-4">
+        <div className="h-7 w-40 bg-secondary rounded-sm" />
+        <div className="h-10 w-full bg-secondary rounded-sm" />
+        <div className="h-10 w-full bg-secondary rounded-sm" />
+      </div>
+      <div className="h-10 w-40 bg-secondary rounded-sm" />
+    </div>
+  )
+}
+
 export default function Settings() {
   const [settings, setSettings] = useState<UserSettings>({});
   const [loading, setLoading] = useState(true);
@@ -82,7 +107,7 @@ export default function Settings() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <SettingsSkeleton />
       ) : (
         <div className="max-w-2xl space-y-8">
           {/* Shipping Address Section */}
@@ -183,4 +208,3 @@ export default function Settings() {
     </div>
   );
 }
-

@@ -159,7 +159,7 @@ export default function ProductDetail() {
         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] mb-12 hover:opacity-50 transition-opacity"
       >
         <ArrowLeft className="w-3 h-3" />
-        Back to Collection
+        Back to Catalog
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">

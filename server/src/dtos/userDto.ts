@@ -5,7 +5,7 @@ import { z } from "zod";
  */
 export const CreateUserDto = z.object({
   email: z.string().email("Invalid email format"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(1, "Password is required"),
   fullName: z.string().optional(),
   role: z.enum(["admin", "superadmin"], {
     errorMap: () => ({ message: "Role must be 'admin' or 'superadmin'" }),
@@ -27,3 +27,29 @@ export const CreateUserResponseDto = z.object({
 
 export type CreateUserResponseDtoType = z.infer<typeof CreateUserResponseDto>;
 
+export const UpdateUserRoleDto = z.object({
+  role: z.enum(["admin", "superadmin"], {
+    errorMap: () => ({ message: "Role must be 'admin' or 'superadmin'" }),
+  }),
+});
+
+export type UpdateUserRoleDtoType = z.infer<typeof UpdateUserRoleDto>;
+
+export const UserIdParamDto = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+export type UserIdParamDtoType = z.infer<typeof UserIdParamDto>;
+
+export const UserListItemDto = z.object({
+  id: z.number().int().positive(),
+  email: z.string().email(),
+  fullName: z.string().nullable(),
+  cognitoSub: z.string(),
+  role: z.enum(["customer", "admin", "superadmin"]),
+  orderCount: z.number().int().nonnegative(),
+  totalItemsOrdered: z.number().int().nonnegative(),
+  createdAt: z.string(),
+});
+
+export type UserListItemDtoType = z.infer<typeof UserListItemDto>;

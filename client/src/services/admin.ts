@@ -74,6 +74,17 @@ export interface CreateUserResponse {
   cognitoSub: string;
 }
 
+export interface AdminUser {
+  id: number;
+  email: string;
+  fullName: string | null;
+  cognitoSub: string;
+  role: 'customer' | 'admin' | 'superadmin';
+  orderCount: number;
+  totalItemsOrdered: number;
+  createdAt: string;
+}
+
 // Product Management
 export async function createProduct(data: CreateProductData): Promise<AdminProduct> {
   const response = await api.post<AdminProduct>('/products', data);
@@ -135,3 +146,12 @@ export async function createUser(data: CreateUserData): Promise<CreateUserRespon
   return response.data;
 }
 
+export async function getUsers(): Promise<AdminUser[]> {
+  const response = await api.get<AdminUser[]>('/users');
+  return response.data;
+}
+
+export async function updateUserRole(id: number, role: 'admin' | 'superadmin'): Promise<AdminUser> {
+  const response = await api.patch<AdminUser>(`/users/${id}/role`, { role });
+  return response.data;
+}

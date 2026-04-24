@@ -38,6 +38,7 @@ const createTables = async () => {
         cognito_sub VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         full_name VARCHAR(255),
+        role VARCHAR(20) NOT NULL DEFAULT 'customer',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

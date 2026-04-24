@@ -15,10 +15,9 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would send the form data to a backend endpoint
     toast({
       title: "Message sent",
-      description: "Thank you for contacting us! We'll get back to you soon.",
+      description: "This demo form is wired up for UI testing and doesn't send a live support request.",
       variant: "success",
     });
     setFormData({ name: '', email: '', subject: '', message: '' });
@@ -29,14 +28,14 @@ export default function Contact() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Mail className="w-8 h-8" />
-          <h1 className="text-4xl font-bold">Contact Us</h1>
+          <h1 className="text-4xl font-bold">Contact</h1>
         </div>
-        <p className="text-muted-foreground">Get in touch with our team</p>
+        <p className="text-muted-foreground">Demo contact details for Stephen&apos;s test storefront</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Send us a message</h2>
+          <h2 className="text-2xl font-semibold mb-4">Send a test message</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="name">Name</Label>
@@ -87,19 +86,19 @@ export default function Contact() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
+          <h2 className="text-2xl font-semibold mb-4">Demo Information</h2>
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-1">Email</p>
-              <p className="font-medium">support@objekt.com</p>
+              <p className="font-medium">stephen+demo@dionola.com</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Phone</p>
-              <p className="font-medium">+1 (555) 123-4567</p>
+              <p className="text-sm text-muted-foreground mb-1">Project</p>
+              <p className="font-medium">dionola storefront sandbox</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Business Hours</p>
-              <p className="font-medium">Monday - Friday: 9:00 AM - 6:00 PM EST</p>
+              <p className="text-sm text-muted-foreground mb-1">Dataset</p>
+              <p className="font-medium">H&amp;M dataset sample by Luminati</p>
             </div>
           </div>
         </div>
@@ -107,7 +106,6 @@ export default function Contact() {
     </div>
   );
 }
-
 
 
 

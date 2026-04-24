@@ -1,11 +1,31 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getWishlist, removeFromWishlist, type Wishlist as WishlistType } from '../services/wishlists';
-import { Heart, Trash2, ShoppingCart, Loader2 } from 'lucide-react';
+import { Heart, Trash2, ShoppingCart } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useCart } from '../contexts/CartContext';
 import { toast } from '../components/ui/toaster';
 import { formatCurrency } from '../lib/currency';
+
+function WishlistSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div key={index} className="border border-border rounded-lg overflow-hidden">
+          <div className="w-full h-64 bg-secondary" />
+          <div className="p-4 space-y-4">
+            <div className="h-5 w-3/4 bg-secondary rounded-sm" />
+            <div className="h-6 w-24 bg-secondary rounded-sm" />
+            <div className="flex gap-2">
+              <div className="h-9 flex-1 bg-secondary rounded-sm" />
+              <div className="h-9 w-9 bg-secondary rounded-sm" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function Wishlist() {
   const [wishlist, setWishlist] = useState<WishlistType | null>(null);
@@ -74,9 +94,7 @@ export default function Wishlist() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <Loader2 className="w-8 h-8 mx-auto text-muted-foreground animate-spin" />
-        </div>
+        <WishlistSkeleton />
       ) : wishlist && wishlist.items.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {wishlist.items.map((item) => {

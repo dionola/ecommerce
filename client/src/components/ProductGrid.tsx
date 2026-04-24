@@ -14,6 +14,38 @@ import { formatCurrency } from "../lib/currency"
 
 type ViewMode = "grid" | "list"
 
+function ProductGridSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="mb-12 space-y-6">
+        <div className="h-12 w-64 bg-secondary rounded-sm" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="h-12 bg-secondary rounded-sm" />
+          <div className="h-12 bg-secondary rounded-sm" />
+          <div className="h-12 bg-secondary rounded-sm" />
+          <div className="h-12 bg-secondary rounded-sm" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="space-y-6">
+            <div className="aspect-[3/4] bg-secondary rounded-sm" />
+            <div className="flex justify-between items-start gap-6">
+              <div className="flex-1 space-y-3">
+                <div className="h-6 w-3/4 bg-secondary rounded-sm" />
+                <div className="h-4 w-1/2 bg-secondary rounded-sm" />
+              </div>
+              <div className="h-6 w-20 bg-secondary rounded-sm" />
+            </div>
+            <div className="h-10 w-full bg-secondary rounded-sm" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen?: boolean } = {}) {
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -211,7 +243,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
   }
 
   return (
-    <section ref={productGridRef} id="collection" className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
+    <section ref={productGridRef} id="collection" data-product-grid className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
       <ProductFilters 
         onFilterChange={(newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }))}
         initialCategory={filters.category}
@@ -221,7 +253,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
 
       <div className="flex justify-between items-end mb-12">
         <div>
-          <h2 className="text-4xl font-bold tracking-tighter uppercase">Collection</h2>
+          <h2 className="text-4xl font-bold tracking-tighter uppercase">Catalog</h2>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -246,9 +278,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
       )}
 
       {loading && products.length === 0 ? (
-        <div className="text-center text-muted-foreground py-20">
-          <Loader2 className="w-8 h-8 mx-auto animate-spin" />
-        </div>
+        <ProductGridSkeleton />
       ) : (
         <div className={viewMode === "grid" 
           ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16"
