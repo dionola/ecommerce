@@ -133,6 +133,11 @@ export default function OrderHistory() {
                       {formatCurrency(order.total_amount)} • {new Date(order.created_at).toLocaleDateString()}
                     </p>
                     <p className="text-sm">{order.items.length} item(s)</p>
+                    {order.promo && (
+                      <p className="text-xs text-muted-foreground mt-1 uppercase tracking-widest">
+                        Promo {order.promo.code}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -172,6 +177,16 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
             <p className="text-sm text-muted-foreground">Total Amount</p>
             <p className="font-semibold">{formatCurrency(order.total_amount)}</p>
           </div>
+          {order.promo && (
+            <div>
+              <p className="text-sm text-muted-foreground">Promo</p>
+              <p className="font-semibold">
+                {order.promo.code} • {order.promo.discount_type === 'percentage'
+                  ? `${order.promo.discount_value}% off`
+                  : `${formatCurrency(order.promo.discount_value)} off`}
+              </p>
+            </div>
+          )}
           <div>
             <p className="text-sm text-muted-foreground">Date</p>
             <p>{new Date(order.created_at).toLocaleString()}</p>
@@ -204,6 +219,17 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold">{item.product.name}</p>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          navigate(`/product/${item.product.id}`)
+                          onClose()
+                        }}
+                        className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground hover:underline"
+                      >
+                        Ref. {item.product.id}
+                      </button>
                       <p className="text-sm text-muted-foreground">
                         Quantity: {item.quantity}
                       </p>

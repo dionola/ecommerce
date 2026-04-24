@@ -65,7 +65,7 @@ export async function signUp(params: SignUpParams): Promise<SignUpResult> {
     });
 
     return {
-      userId: result.userId,
+      userId: result.userId ?? params.email,
       nextStep: {
         signUpStep: (result.nextStep as any)?.signUpStep || 'CONFIRM_SIGN_UP',
       },
@@ -260,26 +260,6 @@ declare global {
 }
 
 /**
- * Load Google Identity Services script
- */
-function loadGoogleScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.google?.accounts?.id) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Google Identity Services'));
-    document.head.appendChild(script);
-  });
-}
-
-/**
  * Sign in with Google using OAuth redirect flow (opens in new tab)
  * 
  * All authentication happens on the client side. The server only verifies JWT tokens.
@@ -363,4 +343,3 @@ export async function signInWithGoogle(): Promise<void> {
     }, 1000);
   });
 }
-

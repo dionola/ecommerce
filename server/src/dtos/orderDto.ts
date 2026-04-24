@@ -1,6 +1,15 @@
 import { z } from "zod";
 import { ProductDto } from "./productDto.js";
 
+export const OrderPromoDto = z.object({
+  id: z.number().int().positive(),
+  code: z.string(),
+  discount_type: z.enum(["percentage", "fixed"]),
+  discount_value: z.coerce.number().nonnegative(),
+});
+
+export type OrderPromoDtoType = z.infer<typeof OrderPromoDto>;
+
 export const OrderItemDto = z.object({
   id: z.number().int().positive(),
   product: ProductDto,
@@ -16,6 +25,7 @@ export const OrderDto = z.object({
   total_amount: z.coerce.number().nonnegative(),
   status: z.string(),
   promo_id: z.number().int().positive().nullable(),
+  promo: OrderPromoDto.nullable().optional(),
   payment_intent_id: z.string().nullable(),
   shipping_address: z.record(z.string(), z.unknown()).nullable(),
   created_at: z.coerce.date(),
@@ -67,4 +77,3 @@ export const OrderIdParamDto = z.object({
 });
 
 export type OrderIdParamDtoType = z.infer<typeof OrderIdParamDto>;
-

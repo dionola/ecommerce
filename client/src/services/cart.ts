@@ -1,5 +1,5 @@
 import apiRequest from './api';
-import type { CartDtoType, AddCartItemDtoType, UpdateCartItemDtoType } from '../../types/cart';
+import type { CartDtoType, AddCartItemDtoType, UpdateCartItemDtoType } from '../types/cart';
 
 export async function getCart(): Promise<CartDtoType> {
   return apiRequest<CartDtoType>('/carts');
@@ -39,4 +39,3 @@ export async function clearCart(): Promise<void> {
     method: 'DELETE',
   });
 }
-

@@ -34,8 +34,14 @@ const usersToSeed: UserSeedData[] = [
     groups: [],
   },
   {
+    email: 'shopper@example.com',
+    password: 'Shopper@123',
+    fullName: 'Demo Shopper',
+    groups: [],
+  },
+  {
     email: 'admin@admin.com',
-    password: 'admin',
+    password: 'Admin@123',
     fullName: 'Default Admin',
     groups: ['admin'],
   },

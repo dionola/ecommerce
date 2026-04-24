@@ -6,6 +6,24 @@ import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { Separator } from "./ui/separator"
+import { AuthModeHeader } from "./auth/AuthModeHeader"
+import { AuthStatusMessage } from "./auth/AuthStatusMessage"
+import { DemoAccountList } from "./auth/DemoAccountList"
+
+const demoAccounts = [
+  {
+    label: "Admin Demo",
+    email: "admin@admin.com",
+    password: "Admin@123",
+    note: "Admin access",
+  },
+  {
+    label: "Shopper Demo",
+    email: "shopper@example.com",
+    password: "Shopper@123",
+    note: "Orders, wishlist, cart",
+  },
+]
 
 export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [mode, setMode] = useState<"login" | "register" | "confirm">("login")
@@ -19,6 +37,36 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const [success, setSuccess] = useState<string | null>(null)
   const { signIn, signInWithGoogle, signUp, confirmSignUp, resendConfirmationCode } = useAuth()
 
+  const authErrorMessage = (err: any, fallback: string) => {
+    if (err?.code === 'NotAuthorizedException') {
+      return 'Incorrect email or password'
+    }
+    if (err?.code === 'UserNotConfirmedException') {
+      setMode('confirm')
+      return 'Please confirm your email address. Check your inbox for a confirmation code.'
+    }
+    if (err?.code === 'UsernameExistsException') {
+      return 'An account with this email already exists'
+    }
+    if (err?.code === 'InvalidPasswordException') {
+      return 'Password does not meet requirements'
+    }
+    if (err?.code === 'CodeMismatchException') {
+      return 'Invalid confirmation code'
+    }
+    if (err?.code === 'ExpiredCodeException') {
+      return 'Confirmation code has expired. Please request a new one.'
+    }
+    return err?.message || fallback
+  }
+
+  const closeAfterSuccess = (message: string, delay = 800) => {
+    setSuccess(message)
+    window.setTimeout(() => {
+      handleClose()
+    }, delay)
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -27,25 +75,9 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
     try {
       await signIn(email, password)
-      setSuccess("Successfully signed in!")
-      setTimeout(() => {
-        onClose()
-        resetForm()
-        window.location.reload()
-      }, 1000)
+      closeAfterSuccess("Successfully signed in!")
     } catch (err: any) {
-      let errorMessage = 'Authentication failed'
-      
-      if (err.code === 'NotAuthorizedException') {
-        errorMessage = 'Incorrect email or password'
-      } else if (err.code === 'UserNotConfirmedException') {
-        errorMessage = 'Please confirm your email address. Check your inbox for a confirmation code.'
-        setMode('confirm')
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      
-      setError(errorMessage)
+      setError(authErrorMessage(err, 'Authentication failed'))
     } finally {
       setLoading(false)
     }
@@ -73,17 +105,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       setSuccess("Account created! Please check your email for a confirmation code.")
       setMode('confirm')
     } catch (err: any) {
-      let errorMessage = 'Registration failed'
-      
-      if (err.code === 'UsernameExistsException') {
-        errorMessage = 'An account with this email already exists'
-      } else if (err.code === 'InvalidPasswordException') {
-        errorMessage = 'Password does not meet requirements'
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      
-      setError(errorMessage)
+      setError(authErrorMessage(err, 'Registration failed'))
     } finally {
       setLoading(false)
     }
@@ -98,23 +120,12 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     try {
       await confirmSignUp(email, confirmationCode)
       setSuccess("Email confirmed! You can now sign in.")
-      setTimeout(() => {
+      window.setTimeout(() => {
         setMode('login')
         setConfirmationCode("")
-        window.location.reload()
       }, 2000)
     } catch (err: any) {
-      let errorMessage = 'Confirmation failed'
-      
-      if (err.code === 'CodeMismatchException') {
-        errorMessage = 'Invalid confirmation code'
-      } else if (err.code === 'ExpiredCodeException') {
-        errorMessage = 'Confirmation code has expired. Please request a new one.'
-      } else if (err.message) {
-        errorMessage = err.message
-      }
-      
-      setError(errorMessage)
+      setError(authErrorMessage(err, 'Confirmation failed'))
     } finally {
       setLoading(false)
     }
@@ -142,13 +153,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
     try {
       await signInWithGoogle()
-      // User will be redirected to Google in new tab, then back to the app
-      setSuccess("Successfully signed in with Google!")
-      setTimeout(() => {
-        onClose()
-        resetForm()
-        window.location.reload()
-      }, 1000)
+      closeAfterSuccess("Successfully signed in with Google!")
     } catch (err: any) {
       setError(err.message || 'Google sign in failed')
       setLoading(false)
@@ -171,30 +176,37 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     onClose()
   }
 
+  const applyDemoAccount = async (account: typeof demoAccounts[number]) => {
+    setMode("login")
+    setEmail(account.email)
+    setPassword(account.password)
+    setConfirmPassword(account.password)
+    setError(null)
+    setSuccess(null)
+
+    setLoading(true)
+    try {
+      await signIn(account.email, account.password)
+      closeAfterSuccess("Successfully signed in!")
+    } catch (err: any) {
+      setError(authErrorMessage(err, 'Authentication failed'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md p-0 border-none rounded-none overflow-hidden">
-        <DialogHeader className="p-8 border-b border-border bg-secondary">
-          <DialogTitle className="text-2xl font-bold uppercase tracking-tighter">
-            {mode === "login" && "Sign In"}
-            {mode === "register" && "Create Account"}
-            {mode === "confirm" && "Confirm Email"}
-          </DialogTitle>
-        </DialogHeader>
+        <DialogContent className="max-w-md p-0 border-none rounded-none overflow-hidden">
+          <DialogHeader className="p-8 border-b border-border bg-secondary">
+            <DialogTitle className="text-2xl font-bold uppercase tracking-tighter">
+              <AuthModeHeader mode={mode} />
+            </DialogTitle>
+          </DialogHeader>
 
         <form onSubmit={mode === "login" ? handleLogin : mode === "register" ? handleSignUp : handleConfirmSignUp}>
           <div className="p-8 space-y-8">
-            {error && (
-              <div className="text-sm text-destructive font-medium p-3 bg-destructive/10 border border-destructive/20">
-                {error}
-              </div>
-            )}
-            
-            {success && (
-              <div className="text-sm text-green-600 font-medium p-3 bg-green-50 border border-green-200">
-                {success}
-              </div>
-            )}
+            <AuthStatusMessage error={error} success={success} />
 
             {mode === "confirm" ? (
               <div className="space-y-4">
@@ -234,6 +246,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               </div>
             ) : (
               <div className="space-y-4">
+                <DemoAccountList accounts={demoAccounts} onSelect={applyDemoAccount} />
                 {mode === "register" && (
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -273,7 +286,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                     minLength={8}
                   />
                   {mode === "register" && (
-                    <p className="text-[10px] text-muted-foreground">Must be at least 8 characters</p>
+                    <p className="text-[10px] text-muted-foreground">Must be 8+ chars with upper, lower, number, and symbol</p>
                   )}
                 </div>
                 {mode === "register" && (

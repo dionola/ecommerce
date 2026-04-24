@@ -48,7 +48,7 @@ server/
 
 ## Environment Variables
 
-Start from [`server/.env.example`](/Users/stephen/Developer/dionola-com/e_commerce_store/server/.env.example:1) and create `server/.env`.
+Start from [server/.env.example](/Users/stephen/repoClone/e_commerce_store/server/.env.example:1) and create `server/.env`.
 
 ```env
 DB_HOST=localhost
@@ -71,7 +71,7 @@ NODE_ENV=development
 
 Validation details:
 
-- Database vars are required outside test mode in [`src/config/env.ts`](/Users/stephen/Developer/dionola-com/e_commerce_store/server/src/config/env.ts:1).
+- Database vars are required outside test mode in [src/config/env.ts](/Users/stephen/repoClone/e_commerce_store/server/src/config/env.ts:1).
 - Stripe, Cognito, and `FRONTEND_URL` become required in production.
 
 ## Install
@@ -119,7 +119,7 @@ Default local server:
 
 ## API Routes
 
-Routes are registered in [`src/index.ts`](/Users/stephen/Developer/dionola-com/e_commerce_store/server/src/index.ts:1).
+Routes are registered in [src/index.ts](/Users/stephen/repoClone/e_commerce_store/server/src/index.ts:1).
 
 - `GET /health`
 - `/products`
@@ -137,7 +137,7 @@ In non-production environments, test auth routes are also enabled.
 
 ## Database and Seeding
 
-Schema and data scripts live in [`server/db/scripts/000-seeding`](/Users/stephen/Developer/dionola-com/e_commerce_store/server/db/scripts/000-seeding:1).
+Schema and data scripts live in [server/db/scripts/000-seeding](/Users/stephen/repoClone/e_commerce_store/server/db/scripts/000-seeding:1).
 
 Common files include:
 
@@ -149,7 +149,7 @@ Because this folder contains many one-off maintenance scripts, review the specif
 
 ## Testing
 
-Tests live in [`src/__tests__`](/Users/stephen/Developer/dionola-com/e_commerce_store/server/src/__tests__:1) and cover areas such as:
+Tests live in [src/__tests__](/Users/stephen/repoClone/e_commerce_store/server/src/__tests__:1) and cover areas such as:
 
 - auth
 - carts
@@ -161,5 +161,5 @@ Tests live in [`src/__tests__`](/Users/stephen/Developer/dionola-com/e_commerce_
 ## Notes
 
 - The backend uses CORS with `FRONTEND_URL` to allow the frontend origin.
-- PostgreSQL connection setup lives in [`src/config/database.ts`](/Users/stephen/Developer/dionola-com/e_commerce_store/server/src/config/database.ts:1).
+- PostgreSQL connection setup lives in [src/config/database.ts](/Users/stephen/repoClone/e_commerce_store/server/src/config/database.ts:1).
 - Built files are emitted to `server/dist`.

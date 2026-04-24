@@ -19,6 +19,41 @@ import { addToWishlist, removeFromWishlist, getWishlist } from "../services/wish
 import { toast } from "../components/ui/toaster"
 import { formatCurrency } from "../lib/currency"
 
+function ProductDetailSkeleton() {
+  return (
+    <div className="max-w-[1400px] mx-auto px-6 py-12 animate-pulse">
+      <div className="h-4 w-32 bg-secondary mb-12 rounded-sm" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <div className="lg:col-span-7 space-y-6">
+          <div className="aspect-[3/4] bg-secondary rounded-sm" />
+          <div className="flex gap-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="w-24 h-32 bg-secondary rounded-sm" />
+            ))}
+          </div>
+        </div>
+        <div className="lg:col-span-5 space-y-6">
+          <div className="space-y-3">
+            <div className="h-4 w-24 bg-secondary rounded-sm" />
+            <div className="h-12 w-4/5 bg-secondary rounded-sm" />
+            <div className="h-8 w-32 bg-secondary rounded-sm" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-secondary rounded-sm" />
+            <div className="h-4 w-11/12 bg-secondary rounded-sm" />
+            <div className="h-4 w-4/5 bg-secondary rounded-sm" />
+          </div>
+          <div className="flex gap-4">
+            <div className="h-14 w-36 bg-secondary rounded-sm" />
+            <div className="h-14 flex-1 bg-secondary rounded-sm" />
+          </div>
+          <div className="h-14 w-full bg-secondary rounded-sm" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -132,11 +167,7 @@ export default function ProductDetail() {
   }
 
   if (loading) {
-    return (
-      <div className="max-w-[1400px] mx-auto px-6 py-12">
-        <div className="text-center text-muted-foreground">Loading product...</div>
-      </div>
-    )
+    return <ProductDetailSkeleton />
   }
 
   if (error || !product) {

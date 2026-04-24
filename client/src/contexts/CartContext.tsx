@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import * as cartService from '../services/cart';
 import * as guestCartService from '../services/guestCart';
 import { useAuth } from './AuthContext'
 import { getProduct } from '../services/products';
-import type { CartDtoType, CartItemDtoType, GuestCartType } from '../types/cart';
-import { dismissToastsByTitle } from '../components/ui/toaster';
+import type { CartDtoType, GuestCartType } from '../types/cart';
 
 // Union type for cart - can be either authenticated cart or guest cart
 type CartUnion = CartDtoType | (GuestCartType & { isGuest: true });
@@ -250,4 +250,3 @@ export function useCart() {
   }
   return context;
 }
-

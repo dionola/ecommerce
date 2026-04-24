@@ -12,12 +12,20 @@ export interface OrderItem {
   price_at_purchase: number;
 }
 
+export interface OrderPromo {
+  id: number;
+  code: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+}
+
 export interface Order {
   id: number;
   user_id: number;
   total_amount: number;
   status: string;
   promo_id: number | null;
+  promo?: OrderPromo | null;
   payment_intent_id: string | null;
   shipping_address: Record<string, unknown> | null;
   created_at: string;

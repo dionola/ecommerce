@@ -1,4 +1,3 @@
-import * as React from "react"
 import { X } from "lucide-react"
 import { cn } from "../../lib/utils"
 
@@ -10,7 +9,7 @@ export interface ToastProps {
   onClose?: () => void
 }
 
-export function Toast({ id, title, description, variant = "default", onClose }: ToastProps) {
+export function Toast({ title, description, variant = "default", onClose }: ToastProps) {
   return (
     <div
       className={cn(
@@ -48,7 +47,6 @@ export function Toast({ id, title, description, variant = "default", onClose }: 
     </div>
   )
 }
-
 
 
 

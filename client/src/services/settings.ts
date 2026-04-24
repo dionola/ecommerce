@@ -1,5 +1,3 @@
-import { api } from './api';
-
 export interface UserSettings {
   shipping_address?: {
     street?: string;
@@ -44,4 +42,3 @@ export function saveSettings(settings: UserSettings): void {
 //   const response = await api.patch<UserSettings>('/settings', data);
 //   return response.data;
 // }
-

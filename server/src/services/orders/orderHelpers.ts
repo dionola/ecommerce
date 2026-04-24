@@ -114,6 +114,15 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
       o.total_amount,
       o.status,
       o.promo_id,
+      CASE
+        WHEN pr.id IS NULL THEN NULL
+        ELSE json_build_object(
+          'id', pr.id,
+          'code', pr.code,
+          'discount_type', pr.discount_type,
+          'discount_value', pr.discount_value
+        )
+      END AS promo,
       o.payment_intent_id,
       o.shipping_address,
       o.created_at,
@@ -151,10 +160,11 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
         '[]'::json
       ) as items
     FROM orders o
+    LEFT JOIN promos pr ON o.promo_id = pr.id
     LEFT JOIN order_items oi ON o.id = oi.order_id
     LEFT JOIN products p ON oi.product_id = p.id
     ${whereClause}
-    GROUP BY o.id, o.user_id, o.total_amount, o.status, o.promo_id, o.payment_intent_id, o.shipping_address, o.created_at
+    GROUP BY o.id, o.user_id, o.total_amount, o.status, o.promo_id, pr.id, pr.code, pr.discount_type, pr.discount_value, o.payment_intent_id, o.shipping_address, o.created_at
   `;
   
   const result = await query(orderQuery, params);
@@ -173,6 +183,7 @@ export async function fetchOrderById(orderId: number, userId?: number): Promise<
     total_amount: orderData.total_amount,
     status: orderData.status,
     promo_id: orderData.promo_id,
+    promo: orderData.promo,
     payment_intent_id: orderData.payment_intent_id,
     shipping_address: orderData.shipping_address,
     created_at: orderData.created_at,
@@ -198,7 +209,6 @@ export async function checkOrderExists(orderId: number): Promise<void> {
     throw new NotFoundError(`Order with id ${orderId} not found`);
   }
 }
-
 
 
 

@@ -8,18 +8,18 @@ export default function About() {
           <Info className="w-8 h-8" />
           <h1 className="text-4xl font-bold">About dionola</h1>
         </div>
-        <p className="text-muted-foreground">Context for Stephen&apos;s test e-commerce storefront</p>
+        <p className="text-muted-foreground">Application definition</p>
       </div>
 
       <div className="prose prose-sm max-w-none">
         <p className="text-lg mb-6">
-          dionola is Stephen&apos;s test e-commerce site, built to exercise a full storefront flow from browsing through checkout.
+          dionola is a full-stack e-commerce application for browsing products, managing carts and wishlists, placing orders, and running lightweight store administration.
         </p>
         <p className="mb-4">
-          The products and imagery on this site are sourced from the H&amp;M dataset sample published by Luminati, which makes it a practical demo catalog for UI, cart, checkout, and admin workflows.
+          It includes a customer storefront, authentication, checkout integration, order history, and an admin area for products, users, promos, manufacturers, banners, and stock visibility.
         </p>
         <p className="mb-4">
-          It&apos;s a working sandbox rather than a finished production retail brand, so the focus here is on testing the experience, integrations, and layout polish.
+          The catalog content is based on the H&amp;M dataset sample, making the project useful as both a realistic demo store and a development sandbox for commerce workflows.
         </p>
       </div>
     </div>

@@ -53,7 +53,7 @@ VITE_API_URL=http://localhost:3001
 
 Notes:
 
-- Cognito values are read in [`src/config/amplify.ts`](/Users/stephen/Developer/dionola-com/e_commerce_store/client/src/config/amplify.ts:1).
+- Cognito values are read in [src/config/amplify.ts](/Users/stephen/repoClone/e_commerce_store/client/src/config/amplify.ts:1).
 - `VITE_API_URL` should point to the backend server.
 
 ## Install
@@ -80,7 +80,7 @@ The app runs on Vite's default local server, typically `http://localhost:5173`.
 
 ## Routes
 
-Main application routes are defined in [`src/App.tsx`](/Users/stephen/Developer/dionola-com/e_commerce_store/client/src/App.tsx:1).
+Main application routes are defined in [src/App.tsx](/Users/stephen/repoClone/e_commerce_store/client/src/App.tsx:1).
 
 - `/`
 - `/product/:id`
@@ -104,7 +104,7 @@ Main application routes are defined in [`src/App.tsx`](/Users/stephen/Developer/
 
 ## API Integration
 
-Frontend API calls live under [`src/services`](/Users/stephen/Developer/dionola-com/e_commerce_store/client/src/services). These services communicate with the backend for:
+Frontend API calls live under [src/services](/Users/stephen/repoClone/e_commerce_store/client/src/services:1). These services communicate with the backend for:
 
 - auth
 - products

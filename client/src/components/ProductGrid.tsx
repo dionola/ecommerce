@@ -1,246 +1,30 @@
-import { useState, useEffect, useRef } from "react"
-import { Link, useSearchParams } from "react-router-dom"
 import { ProductFilters } from "./ProductFilters"
 import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
-import { getProducts } from "../services/products"
-import { mapProductDtoToProduct } from "../types/product"
-import { ProductStatusBadge } from "./ProductStatusBadge"
-import { addToWishlist, removeFromWishlist, getWishlist } from "../services/wishlists"
-import { Heart, Grid3x3, List, Loader2 } from "lucide-react"
-import { toast } from "./ui/toaster"
-import type { ProductFilters as FilterType } from "./ProductFilters"
-import { formatCurrency } from "../lib/currency"
-
-type ViewMode = "grid" | "list"
-
-function ProductGridSkeleton() {
-  return (
-    <div className="animate-pulse">
-      <div className="mb-12 space-y-6">
-        <div className="h-12 w-64 bg-secondary rounded-sm" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="h-12 bg-secondary rounded-sm" />
-          <div className="h-12 bg-secondary rounded-sm" />
-          <div className="h-12 bg-secondary rounded-sm" />
-          <div className="h-12 bg-secondary rounded-sm" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} className="space-y-6">
-            <div className="aspect-[3/4] bg-secondary rounded-sm" />
-            <div className="flex justify-between items-start gap-6">
-              <div className="flex-1 space-y-3">
-                <div className="h-6 w-3/4 bg-secondary rounded-sm" />
-                <div className="h-4 w-1/2 bg-secondary rounded-sm" />
-              </div>
-              <div className="h-6 w-20 bg-secondary rounded-sm" />
-            </div>
-            <div className="h-10 w-full bg-secondary rounded-sm" />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+import { Grid3x3, List, Loader2 } from "lucide-react"
+import { ProductGridSkeleton } from "./product-grid/ProductGridSkeleton"
+import { ProductGridContent } from "./product-grid/ProductGridContent"
+import { useProductGridState } from "../hooks/useProductGridState"
 
 export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen?: boolean } = {}) {
-  const [products, setProducts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [filters, setFilters] = useState<FilterType>({})
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>("grid")
-  const [searchParams] = useSearchParams()
   const { addItem } = useCart()
   const { isAuthenticated } = useAuth()
-  const [wishlistProductIds, setWishlistProductIds] = useState<Set<number>>(new Set())
-  const sentinelRef = useRef<HTMLDivElement>(null)
-  const productGridRef = useRef<HTMLDivElement>(null)
-
-  // Read category from URL params and scroll to grid
-  useEffect(() => {
-    const category = searchParams.get('category')
-    if (category) {
-      setFilters((prev) => ({ ...prev, category }))
-      // Scroll to product grid when category is set
-      setTimeout(() => {
-        if (productGridRef.current) {
-          productGridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
-      }, 100)
-    }
-  }, [searchParams])
-
-  // Reset to page 1 and set loading when filters change
-  useEffect(() => {
-    setPage(1)
-    setLoading(true)
-    setProducts([])
-    setError(null)
-  }, [filters])
-
-  // Fetch products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      if (page === 1) {
-        setLoading(true)
-      } else {
-        setIsLoadingMore(true)
-      }
-      setError(null)
-      try {
-        // Convert categories array to query params
-        const queryParams: any = { ...filters, page, limit: 20 }
-        // If categories array is provided, use it and remove single category
-        if (filters.categories && filters.categories.length > 0) {
-          queryParams.categories = filters.categories
-          delete queryParams.category
-        }
-        const response = await getProducts(queryParams)
-        const mappedProducts = response.products.map(mapProductDtoToProduct)
-        
-        if (page === 1) {
-          setProducts(mappedProducts)
-        } else {
-          setProducts((prev) => [...prev, ...mappedProducts])
-        }
-        
-        setHasMore(response.hasMore)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load products')
-      } finally {
-        setLoading(false)
-        setIsLoadingMore(false)
-      }
-    }
-
-    fetchProducts()
-  }, [filters, page])
-
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !loading) {
-          setPage((prev) => prev + 1)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    const currentSentinel = sentinelRef.current
-    if (currentSentinel) {
-      observer.observe(currentSentinel)
-    }
-
-    return () => {
-      if (currentSentinel) {
-        observer.unobserve(currentSentinel)
-      }
-    }
-  }, [hasMore, isLoadingMore, loading])
-
-  // Load wishlist on mount
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadWishlist()
-    }
-  }, [isAuthenticated])
-
-  // Scroll to grid when hash is present or when navigating to collection
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash
-      if (hash === '#collection') {
-        setTimeout(() => {
-          if (productGridRef.current) {
-            productGridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }
-        }, 100)
-      }
-    }
-
-    // Check on mount
-    handleHashChange()
-
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange)
-    return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [])
-
-  const loadWishlist = async () => {
-    try {
-      const wishlist = await getWishlist()
-      const productIds = new Set(wishlist.items.map(item => item.product.id))
-      setWishlistProductIds(productIds)
-    } catch (err) {
-      // Silently fail - user might not have wishlist yet
-    }
-  }
-
-  const handleAddToCart = async (product: any, quantity: number = 1) => {
-    try {
-      await addItem(product.id, quantity)
-      toast({
-        title: "Added to cart",
-        description: `${product.name} has been added to your cart`,
-        variant: "success",
-      })
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message || 'Failed to add to cart',
-        variant: "destructive",
-      })
-    }
-  }
-
-  const handleToggleWishlist = async (e: React.MouseEvent, productId: number) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (!isAuthenticated) {
-      toast({
-        title: "Sign in required",
-        description: 'Please sign in to add items to your wishlist',
-        variant: "default",
-      })
-      return
-    }
-
-    try {
-      if (wishlistProductIds.has(productId)) {
-        await removeFromWishlist(productId)
-        setWishlistProductIds(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(productId)
-          return newSet
-        })
-        toast({
-          title: "Removed from wishlist",
-          variant: "success",
-        })
-      } else {
-        await addToWishlist(productId)
-        setWishlistProductIds(prev => new Set(prev).add(productId))
-        toast({
-          title: "Added to wishlist",
-          variant: "success",
-        })
-      }
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message || 'Failed to update wishlist',
-        variant: "destructive",
-      })
-    }
-  }
+  const {
+    products,
+    loading,
+    error,
+    filters,
+    viewMode,
+    wishlistProductIds,
+    hasMore,
+    isLoadingMore,
+    sentinelRef,
+    productGridRef,
+    setFilters,
+    setViewMode,
+    handleAddToCart,
+    handleToggleWishlist,
+  } = useProductGridState({ isAuthenticated, addItem })
 
   return (
     <section ref={productGridRef} id="collection" data-product-grid className="px-6 py-20 max-w-[1400px] mx-auto border-t border-border">
@@ -280,117 +64,14 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
       {loading && products.length === 0 ? (
         <ProductGridSkeleton />
       ) : (
-        <div className={viewMode === "grid" 
-          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16"
-          : "space-y-8"
-        }>
-          {products.map((product) => (
-            viewMode === "grid" ? (
-            <div key={product.id} className="group block">
-              <Link to={`/product/${product.id}`} className="block">
-                <div className="aspect-[3/4] overflow-hidden bg-secondary mb-6 relative group/image">
-                  <img
-                    src={product.mainImage || "/placeholder.svg"}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-out"
-                  />
-                  <ProductStatusBadge statuses={product.statuses || []} />
-                  {isAuthenticated && (
-                    <button
-                      onClick={(e) => handleToggleWishlist(e, product.id)}
-                      className={`absolute top-4 right-4 transition-all cursor-pointer ${
-                        wishlistProductIds.has(product.id) 
-                          ? 'p-0 group-hover/image:p-2 group-hover/image:bg-background/80 group-hover/image:backdrop-blur-sm' 
-                          : 'p-2 bg-background/80 backdrop-blur-sm'
-                      } hover:bg-background`}
-                      aria-label={wishlistProductIds.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
-                    >
-                      <Heart className={`w-5 h-5 transition-all ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500 hover:scale-110 hover:opacity-80' : ''}`} />
-                    </button>
-                  )}
-                </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground uppercase tracking-widest mt-1">
-                      Reference No. {product.id}
-                    </p>
-                  </div>
-                  <p className="font-bold text-lg tracking-tighter">{formatCurrency(product.price)}</p>
-                </div>
-              </Link>
-              {product.inStock && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    handleAddToCart(product, 1)
-                  }}
-                  className="mt-4 w-full bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
-                >
-                  Add to Cart
-                </button>
-              )}
-            </div>
-          ) : (
-            <div key={product.id} className="group flex gap-8 border-b border-border pb-8">
-              <Link to={`/product/${product.id}`} className="flex-shrink-0 w-48 h-64 overflow-hidden bg-secondary relative group/image">
-                <img
-                  src={product.mainImage || "/placeholder.svg"}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-out"
-                />
-                <ProductStatusBadge statuses={product.statuses || []} />
-                {isAuthenticated && (
-                  <button
-                    onClick={(e) => handleToggleWishlist(e, product.id)}
-                    className={`absolute top-4 right-4 transition-all cursor-pointer ${
-                      wishlistProductIds.has(product.id) 
-                        ? 'p-0 group-hover/image:p-2 group-hover/image:bg-background/80 group-hover/image:backdrop-blur-sm' 
-                        : 'p-2 bg-background/80 backdrop-blur-sm'
-                    } hover:bg-background`}
-                    aria-label={wishlistProductIds.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
-                  >
-                    <Heart className={`w-5 h-5 transition-all ${wishlistProductIds.has(product.id) ? 'fill-red-500 text-red-500 hover:scale-110 hover:opacity-80' : ''}`} />
-                  </button>
-                )}
-              </Link>
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <Link to={`/product/${product.id}`} className="block">
-                    <h3 className="text-2xl font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4 mb-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground uppercase tracking-widest mb-4">
-                      Reference No. {product.id}
-                    </p>
-                    {product.description && (
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                        {product.description}
-                      </p>
-                    )}
-                  </Link>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-2xl tracking-tighter">{formatCurrency(product.price)}</p>
-                  {product.inStock && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault()
-                        handleAddToCart(product, 1)
-                      }}
-                      className="bg-black text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
-                    >
-                      Add to Cart
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        ))}
-        </div>
+        <ProductGridContent
+          products={products}
+          viewMode={viewMode}
+          isAuthenticated={isAuthenticated}
+          wishlistProductIds={wishlistProductIds}
+          onToggleWishlist={handleToggleWishlist}
+          onAddToCart={handleAddToCart}
+        />
       )}
 
       {/* Infinite scroll sentinel and loading indicator */}

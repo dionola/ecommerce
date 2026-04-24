@@ -7,14 +7,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
           <div className="md:col-span-6">
             <h2 className="text-6xl md:text-8xl font-bold tracking-tighter uppercase leading-[0.85]">
-              Test <br /> Storefront
+              dionola
             </h2>
             <div className="mt-8 max-w-md">
               <p className="text-background/60 uppercase text-xs tracking-widest mb-6 leading-relaxed">
                 dionola is Stephen's test e-commerce site built with items from the H&amp;M dataset sample.
               </p>
               <div className="space-y-2 border-b border-background/20 pb-4 text-xs uppercase tracking-widest text-background/50">
-                <p>Built for UI, cart, checkout, and admin workflow testing.</p>
                 <a
                   href="https://github.com/luminati-io/HM-dataset-sample"
                   target="_blank"
@@ -42,11 +41,6 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/shipping" className="hover:text-background/60 transition-colors">
-                    Shipping
-                  </Link>
-                </li>
-                <li>
                   <Link to="/contact" className="hover:text-background/60 transition-colors">
                     Contact
                   </Link>
@@ -58,7 +52,7 @@ export function Footer() {
               <ul className="space-y-2 text-sm uppercase tracking-widest font-medium">
                 <li>
                   <a
-                    href="https://github.com/luminati-io/HM-dataset-sample"
+                    href="https://github.com/dionola/e_commerce_store"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-background/60 transition-colors"
@@ -102,14 +96,6 @@ export function Footer() {
           </p>
           <div className="text-5xl font-bold tracking-tighter uppercase opacity-10">dionola</div>
           <div className="flex items-center gap-4 text-[10px] tracking-widest uppercase font-bold text-background/40">
-            <Link to="/returns" className="hover:text-background/60 transition-colors">
-              Returns
-            </Link>
-            <span>•</span>
-            <Link to="/shipping" className="hover:text-background/60 transition-colors">
-              Shipping
-            </Link>
-            <span>•</span>
             <Link to="/contact" className="hover:text-background/60 transition-colors">
               Contact
             </Link>
