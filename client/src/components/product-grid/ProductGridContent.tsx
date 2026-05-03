@@ -6,6 +6,7 @@ interface ProductGridContentProps {
   viewMode: "grid" | "list"
   isAuthenticated: boolean
   wishlistProductIds: Set<number>
+  pendingCartProductIds: Set<number>
   onToggleWishlist: (event: React.MouseEvent, productId: number) => void
   onAddToCart: (product: any, quantity?: number) => void
 }
@@ -15,6 +16,7 @@ export function ProductGridContent({
   viewMode,
   isAuthenticated,
   wishlistProductIds,
+  pendingCartProductIds,
   onToggleWishlist,
   onAddToCart,
 }: ProductGridContentProps) {
@@ -27,6 +29,7 @@ export function ProductGridContent({
             product={product}
             isAuthenticated={isAuthenticated}
             isWishlisted={wishlistProductIds.has(product.id)}
+            isAddingToCart={pendingCartProductIds.has(product.id)}
             onToggleWishlist={onToggleWishlist}
             onAddToCart={onAddToCart}
           />
@@ -36,6 +39,7 @@ export function ProductGridContent({
             product={product}
             isAuthenticated={isAuthenticated}
             isWishlisted={wishlistProductIds.has(product.id)}
+            isAddingToCart={pendingCartProductIds.has(product.id)}
             onToggleWishlist={onToggleWishlist}
             onAddToCart={onAddToCart}
           />

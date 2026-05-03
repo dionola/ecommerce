@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { Heart } from "lucide-react"
+import { Heart, Loader2 } from "lucide-react"
 import { ProductStatusBadge } from "../ProductStatusBadge"
 import { formatCurrency } from "../../lib/currency"
 
@@ -7,6 +7,7 @@ interface ProductCardProps {
   product: any
   isAuthenticated: boolean
   isWishlisted: boolean
+  isAddingToCart: boolean
   onToggleWishlist: (event: React.MouseEvent, productId: number) => void
   onAddToCart: (product: any, quantity?: number) => void
 }
@@ -15,6 +16,7 @@ export function ProductCard({
   product,
   isAuthenticated,
   isWishlisted,
+  isAddingToCart,
   onToggleWishlist,
   onAddToCart,
 }: ProductCardProps) {
@@ -58,13 +60,13 @@ export function ProductCard({
       <button
         onClick={(event) => {
           event.preventDefault()
-          if (!product.inStock) return
+          if (!product.inStock || isAddingToCart) return
           onAddToCart(product, 1)
         }}
-        disabled={!product.inStock}
+        disabled={!product.inStock || isAddingToCart}
         className="mt-4 w-full bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors disabled:bg-zinc-300 disabled:text-zinc-500 disabled:cursor-not-allowed"
       >
-        {product.inStock ? "Add to Cart" : "Out of Stock"}
+        {isAddingToCart ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : product.inStock ? "Add to Cart" : "Out of Stock"}
       </button>
     </div>
   )

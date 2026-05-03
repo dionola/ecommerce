@@ -23,6 +23,7 @@ export function useProductGridState({ isAuthenticated, addItem }: UseProductGrid
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [wishlistProductIds, setWishlistProductIds] = useState<Set<number>>(new Set())
+  const [pendingCartProductIds, setPendingCartProductIds] = useState<Set<number>>(new Set())
   const [searchParams] = useSearchParams()
   const sentinelRef = useRef<HTMLDivElement>(null)
   const productGridRef = useRef<HTMLDivElement>(null)
@@ -119,6 +120,8 @@ export function useProductGridState({ isAuthenticated, addItem }: UseProductGrid
   }, [])
 
   const handleAddToCart = async (product: any, quantity = 1) => {
+    setPendingCartProductIds((prev) => new Set(prev).add(product.id))
+
     try {
       await addItem(product.id, quantity)
       toast({
@@ -131,6 +134,12 @@ export function useProductGridState({ isAuthenticated, addItem }: UseProductGrid
         title: "Error",
         description: err.message || "Failed to add to cart",
         variant: "destructive",
+      })
+    } finally {
+      setPendingCartProductIds((prev) => {
+        const next = new Set(prev)
+        next.delete(product.id)
+        return next
       })
     }
   }
@@ -178,6 +187,7 @@ export function useProductGridState({ isAuthenticated, addItem }: UseProductGrid
     filters,
     viewMode,
     wishlistProductIds,
+    pendingCartProductIds,
     hasMore,
     isLoadingMore,
     sentinelRef,

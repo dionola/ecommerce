@@ -16,6 +16,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
     filters,
     viewMode,
     wishlistProductIds,
+    pendingCartProductIds,
     hasMore,
     isLoadingMore,
     sentinelRef,
@@ -69,6 +70,7 @@ export function ProductGrid({ defaultFiltersOpen = false }: { defaultFiltersOpen
           viewMode={viewMode}
           isAuthenticated={isAuthenticated}
           wishlistProductIds={wishlistProductIds}
+          pendingCartProductIds={pendingCartProductIds}
           onToggleWishlist={handleToggleWishlist}
           onAddToCart={handleAddToCart}
         />
