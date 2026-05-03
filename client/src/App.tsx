@@ -23,6 +23,7 @@ import AdminManufacturers from './pages/admin/AdminManufacturers'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminBanner from './pages/admin/AdminBanner'
 import GoogleAuthCallback from './pages/GoogleAuthCallback'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/banner" element={<AdminBanner />} />
               <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </BrowserRouter>

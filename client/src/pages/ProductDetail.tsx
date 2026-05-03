@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
-import { Minus, Plus, ArrowLeft, Heart } from "lucide-react"
+import { Minus, Plus, ArrowLeft, Heart, Loader2 } from "lucide-react"
 import {
   Carousel,
   CarouselContent,
@@ -64,6 +64,8 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isInWishlist, setIsInWishlist] = useState(false)
+  const [wishlistPending, setWishlistPending] = useState(false)
+  const [cartPending, setCartPending] = useState(false)
   const { addItem } = useCart()
   const { isAuthenticated } = useAuth()
 
@@ -115,6 +117,7 @@ export default function ProductDetail() {
   const handleAddToCart = async () => {
     if (!product) return
 
+    setCartPending(true)
     try {
       await addItem(product.id, quantity)
       toast({
@@ -128,6 +131,8 @@ export default function ProductDetail() {
         description: err.message || 'Failed to add to cart',
         variant: "destructive",
       })
+    } finally {
+      setCartPending(false)
     }
   }
 
@@ -141,6 +146,7 @@ export default function ProductDetail() {
       return
     }
 
+    setWishlistPending(true)
     try {
       if (isInWishlist) {
         await removeFromWishlist(product.id)
@@ -163,6 +169,8 @@ export default function ProductDetail() {
         description: err.message || 'Failed to update wishlist',
         variant: "destructive",
       })
+    } finally {
+      setWishlistPending(false)
     }
   }
 
@@ -250,10 +258,14 @@ export default function ProductDetail() {
               {isAuthenticated && (
                 <button
                   onClick={handleToggleWishlist}
-                  className="p-3 hover:bg-secondary transition-colors ml-4"
+                  disabled={wishlistPending}
+                  className="p-3 hover:bg-secondary transition-colors ml-4 disabled:cursor-wait"
                   aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                 >
-                  <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+                  {wishlistPending
+                    ? <Loader2 className="w-6 h-6 animate-spin" />
+                    : <Heart className={`w-6 h-6 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+                  }
                 </button>
               )}
             </div>
@@ -298,10 +310,13 @@ export default function ProductDetail() {
 
             <Button
               onClick={handleAddToCart}
-              disabled={!product.inStock}
+              disabled={!product.inStock || cartPending}
               className="w-full rounded-none h-20 text-xs font-bold uppercase tracking-[0.4em] bg-black hover:bg-zinc-900 text-white disabled:bg-zinc-300"
             >
-              {product.inStock ? "Add to Shopping Bag" : "Currently Unavailable"}
+              {cartPending
+                ? <Loader2 className="w-5 h-5 animate-spin" />
+                : product.inStock ? "Add to Shopping Bag" : "Currently Unavailable"
+              }
             </Button>
           </div>
         </div>
