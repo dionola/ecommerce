@@ -10,6 +10,8 @@ import { AuthModeHeader } from "./auth/AuthModeHeader"
 import { AuthStatusMessage } from "./auth/AuthStatusMessage"
 import { DemoAccountList } from "./auth/DemoAccountList"
 
+const demoAccountsEnabled = import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === "true"
+
 const demoAccounts = [
   {
     label: "Admin Demo",
@@ -246,7 +248,9 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               </div>
             ) : (
               <div className="space-y-4">
-                <DemoAccountList accounts={demoAccounts} onSelect={applyDemoAccount} />
+                {demoAccountsEnabled && (
+                  <DemoAccountList accounts={demoAccounts} onSelect={applyDemoAccount} />
+                )}
                 {mode === "register" && (
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">

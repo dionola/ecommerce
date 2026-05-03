@@ -1,6 +1,6 @@
 # E-Commerce Store
 
-Large full-stack pet project with a storefront, admin area, authentication, and checkout flow.
+Full-stack e-commerce application with a customer storefront, admin panel, and real payment integration.
 
 ## Structure
 
@@ -9,11 +9,13 @@ Large full-stack pet project with a storefront, admin area, authentication, and 
 
 ## Main Features
 
-- public storefront
-- cart and wishlist
-- Cognito-based auth
-- admin pages for products, orders, promos, users, and banner content
-- Stripe checkout session flow
+- Customer storefront with product catalog, cart, and wishlist
+- AWS Cognito authentication (email/password + Google OAuth)
+- Role-based access control (customer / admin / superadmin)
+- Stripe Checkout session integration
+- Admin panel — products, orders, promos, manufacturers, users, banner
+- Swagger API docs at `/api-docs`
+- Integration test suite (Vitest + Supertest)
 
 ## Run
 
@@ -35,4 +37,3 @@ cd server && pnpm dev
 
 - The frontend and backend each have their own README.
 - This repo also contains a large local image/data set used for seeded catalog content.
-- There are some one-off database scripts under [server/db/scripts/000-seeding](/Users/stephen/repoClone/e_commerce_store/server/db/scripts/000-seeding:1), so review before running them.

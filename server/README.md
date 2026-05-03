@@ -22,13 +22,11 @@ This is the Express + TypeScript backend for the e-commerce store. It exposes AP
 - AWS Cognito-aware auth support
 - Rate limiting, validation, structured error handling, and request logging
 - Swagger docs and health checks
-- Database schema and seeding scripts under `db/scripts/000-seeding`
 
 ## Project Structure
 
 ```text
 server/
-├── db/scripts/000-seeding/
 ├── images/
 ├── src/
 │   ├── __tests__/
@@ -137,7 +135,6 @@ In non-production environments, test auth routes are also enabled.
 
 ## Database and Seeding
 
-Schema and data scripts live in [server/db/scripts/000-seeding](/Users/stephen/repoClone/e_commerce_store/server/db/scripts/000-seeding:1).
 
 Common files include:
 

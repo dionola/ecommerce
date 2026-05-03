@@ -13,10 +13,7 @@ export const testAuthDefinition = {
         
         **This endpoint is only available in development mode.**
         
-        **Available test users:**
-        - Regular user: \`user@example.com\` / \`TestUser123!\`
-        - Admin: \`admin@example.com\` / \`TestAdmin123!\`
-        - Superadmin: \`superadmin@example.com\` / \`TestSuperAdmin123!\`
+        **Use a valid development account from your connected Cognito user pool.**
         
         **How to use:**
         1. Call this endpoint with a test user's credentials
@@ -38,36 +35,22 @@ export const testAuthDefinition = {
                   type: "string",
                   format: "email",
                   description: "Test user email",
-                  example: "admin@example.com",
+                  example: "dev-admin@example.com",
                 },
                 password: {
                   type: "string",
                   description: "Test user password",
-                  example: "TestAdmin123!",
+                  example: "YourDevPassword123!",
                 },
               },
               required: ["email", "password"],
             },
             examples: {
-              regularUser: {
-                summary: "Regular User",
-                value: {
-                  email: "user@example.com",
-                  password: "TestUser123!",
-                },
-              },
               admin: {
-                summary: "Admin User",
+                summary: "Development Admin User",
                 value: {
-                  email: "admin@example.com",
-                  password: "TestAdmin123!",
-                },
-              },
-              superadmin: {
-                summary: "Superadmin User",
-                value: {
-                  email: "superadmin@example.com",
-                  password: "TestSuperAdmin123!",
+                  email: "dev-admin@example.com",
+                  password: "YourDevPassword123!",
                 },
               },
             },
@@ -115,7 +98,7 @@ export const testAuthDefinition = {
                 token: "eyJraWQiOiJcL1wvY29nbml0by11c2VyLXBvb2xcL1VzZXJQb29sSWQiLCJhbGciOiJSUzI1NiJ9...",
                 expiresIn: 3600,
                 user: {
-                  email: "admin@example.com",
+                  email: "dev-admin@example.com",
                   groups: ["admin"],
                 },
                 instructions: {
@@ -147,7 +130,7 @@ export const testAuthDefinition = {
               schema: { $ref: "#/components/schemas/Error" },
               example: {
                 message: "Invalid email or password",
-                hint: "Use test users from seed script: user@example.com, admin@example.com, or superadmin@example.com",
+                hint: "Use a valid development user from your Cognito user pool",
               },
             },
           },
@@ -164,4 +147,3 @@ export const testAuthDefinition = {
     },
   },
 };
-

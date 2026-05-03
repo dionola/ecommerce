@@ -28,10 +28,7 @@ function generateSecretHash(username: string): string {
  * This endpoint allows you to get a JWT token for testing API endpoints in Swagger UI.
  * It authenticates with Cognito using username/password and returns the ID token.
  * 
- * Available test users (from seed script):
- * - user@example.com / TestUser123! (regular user)
- * - admin@example.com / TestAdmin123! (admin role)
- * - superadmin@example.com / TestSuperAdmin123! (superadmin role)
+ * Use a valid development user from the connected Cognito user pool.
  */
 async function getTestToken(req: Request, res: Response): Promise<void> {
   // Only allow in development
@@ -49,8 +46,8 @@ async function getTestToken(req: Request, res: Response): Promise<void> {
       res.status(400).json({
         message: "Email and password are required",
         example: {
-          email: "admin@example.com",
-          password: "TestAdmin123!",
+          email: "dev-admin@example.com",
+          password: "YourDevPassword123!",
         },
       });
       return;
@@ -117,7 +114,7 @@ async function getTestToken(req: Request, res: Response): Promise<void> {
     if (error.name === "NotAuthorizedException") {
       res.status(401).json({
         message: "Invalid email or password",
-        hint: "Use test users from seed script: user@example.com, admin@example.com, or superadmin@example.com",
+        hint: "Use a valid development user from your Cognito user pool",
       });
       return;
     }
@@ -140,4 +137,3 @@ async function getTestToken(req: Request, res: Response): Promise<void> {
 export default {
   getTestToken,
 };
-

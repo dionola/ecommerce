@@ -14,7 +14,7 @@ const options: swaggerJsdoc.Options = {
 To test create, update, and delete operations in Swagger UI:
 
 1. **Get a test token**: Use the \`POST /test-token\` endpoint (available in development mode)
-   - Use test credentials: \`admin@example.com\` / \`TestAdmin123!\` (or other test users)
+   - Use a valid development account from your Cognito user pool
    - Copy the \`token\` from the response
 
 2. **Authorize in Swagger UI**:
@@ -645,4 +645,3 @@ To test create, update, and delete operations in Swagger UI:
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
-
