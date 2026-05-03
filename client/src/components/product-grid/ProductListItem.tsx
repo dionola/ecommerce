@@ -63,17 +63,17 @@ export function ProductListItem({
         </div>
         <div className="flex items-center justify-between">
           <p className="font-bold text-2xl tracking-tighter">{formatCurrency(product.price)}</p>
-          {product.inStock && (
-            <button
-              onClick={(event) => {
-                event.preventDefault()
-                onAddToCart(product, 1)
-              }}
-              className="bg-black text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
-            >
-              Add to Cart
-            </button>
-          )}
+          <button
+            onClick={(event) => {
+              event.preventDefault()
+              if (!product.inStock) return
+              onAddToCart(product, 1)
+            }}
+            disabled={!product.inStock}
+            className="bg-black text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors disabled:bg-zinc-300 disabled:text-zinc-500 disabled:cursor-not-allowed"
+          >
+            {product.inStock ? "Add to Cart" : "Out of Stock"}
+          </button>
         </div>
       </div>
     </div>

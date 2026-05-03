@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getWishlist, removeFromWishlist, type Wishlist as WishlistType } from '../services/wishlists';
-import { Heart, Trash2, ShoppingCart } from 'lucide-react';
+import { Heart, Trash2, ShoppingCart, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useCart } from '../contexts/CartContext';
 import { toast } from '../components/ui/toaster';
@@ -30,6 +30,8 @@ function WishlistSkeleton() {
 export default function Wishlist() {
   const [wishlist, setWishlist] = useState<WishlistType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingRemove, setPendingRemove] = useState<number | null>(null);
+  const [pendingCart, setPendingCart] = useState<number | null>(null);
   const { addItem } = useCart();
 
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function Wishlist() {
   };
 
   const handleRemove = async (productId: number) => {
+    setPendingRemove(productId);
     try {
       await removeFromWishlist(productId);
       await loadWishlist();
@@ -56,30 +59,33 @@ export default function Wishlist() {
         title: "Removed from wishlist",
         variant: "success",
       })
-    } catch (error) {
-      console.error('Failed to remove from wishlist:', error);
+    } catch {
       toast({
         title: "Error",
         description: 'Failed to remove from wishlist',
         variant: "destructive",
       })
+    } finally {
+      setPendingRemove(null);
     }
   };
 
   const handleAddToCart = async (productId: number) => {
+    setPendingCart(productId);
     try {
       await addItem(productId, 1);
       toast({
         title: "Added to cart",
         variant: "success",
       })
-    } catch (error) {
-      console.error('Failed to add to cart:', error);
+    } catch {
       toast({
         title: "Error",
         description: 'Failed to add to cart',
         variant: "destructive",
       })
+    } finally {
+      setPendingCart(null);
     }
   };
 
@@ -101,7 +107,7 @@ export default function Wishlist() {
             const product = item.product;
             const mainImage = product.images.find(img => img.is_main) || product.images[0];
             return (
-              <div key={product.id} className="border border-border rounded-lg overflow-hidden group">
+              <div key={product.id} className={`border border-border rounded-lg overflow-hidden group transition-opacity ${pendingRemove === product.id ? 'opacity-50' : ''}`}>
                 <Link to={`/product/${product.id}`}>
                   {mainImage && (
                     <img
@@ -123,17 +129,26 @@ export default function Wishlist() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleAddToCart(product.id)}
+                      disabled={pendingCart === product.id || pendingRemove === product.id || product.stock_quantity <= 0}
                       className="flex-1"
                     >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Add to Cart
+                      {pendingCart === product.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : product.stock_quantity > 0
+                          ? <><ShoppingCart className="w-4 h-4 mr-2" />Add to Cart</>
+                          : <>Out of Stock</>
+                      }
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleRemove(product.id)}
+                      disabled={pendingRemove === product.id || pendingCart === product.id}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {pendingRemove === product.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Trash2 className="w-4 h-4" />
+                      }
                     </Button>
                   </div>
                 </div>

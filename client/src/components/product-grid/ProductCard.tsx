@@ -47,28 +47,25 @@ export function ProductCard({
           )}
         </div>
         <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4">
+          <div className="min-w-0 flex-1 pr-4">
+            <h3 className="text-lg font-bold uppercase tracking-tight group-hover:underline decoration-2 underline-offset-4 line-clamp-2 min-h-[3.5rem]">
               {product.name}
             </h3>
-            <p className="text-sm text-muted-foreground uppercase tracking-widest mt-1">
-              Reference No. {product.id}
-            </p>
           </div>
-          <p className="font-bold text-lg tracking-tighter">{formatCurrency(product.price)}</p>
+          <p className="font-bold text-lg tracking-tighter flex-shrink-0">{formatCurrency(product.price)}</p>
         </div>
       </Link>
-      {product.inStock && (
-        <button
-          onClick={(event) => {
-            event.preventDefault()
-            onAddToCart(product, 1)
-          }}
-          className="mt-4 w-full bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
-        >
-          Add to Cart
-        </button>
-      )}
+      <button
+        onClick={(event) => {
+          event.preventDefault()
+          if (!product.inStock) return
+          onAddToCart(product, 1)
+        }}
+        disabled={!product.inStock}
+        className="mt-4 w-full bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors disabled:bg-zinc-300 disabled:text-zinc-500 disabled:cursor-not-allowed"
+      >
+        {product.inStock ? "Add to Cart" : "Out of Stock"}
+      </button>
     </div>
   )
 }
