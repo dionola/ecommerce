@@ -1,63 +1,91 @@
 # E-Commerce Store
 
-Full-stack e-commerce application with a customer storefront, admin panel, and real payment integration. The project includes two independent backend implementations — one in TypeScript/Express and one in ASP.NET Core — both serving the same React frontend.
+Full-stack e-commerce application with a customer storefront, admin panel, and real payment integration. Two independent backend implementations — TypeScript/Express and ASP.NET Core — both serving the same React frontend.
 
 [![e-commerce](https://ejyic7eskr7jje45.public.blob.vercel-storage.com/ecommerce-thumbnail.png)](https://ecommerce.dionola.com)
-
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white)
-![C#](https://img.shields.io/badge/C%23-239120?style=flat&logo=csharp&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET-512BD4?style=flat&logo=dotnet&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=flat&logo=microsoftsqlserver&logoColor=white)
-![AWS Cognito](https://img.shields.io/badge/AWS_Cognito-FF9900?style=flat&logo=amazonaws&logoColor=white)
-![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=flat&logo=stripe&logoColor=white)
-![Zod](https://img.shields.io/badge/Zod-3E67B1?style=flat&logo=zod&logoColor=white)
 
 ---
 
 ## Structure
 
-- `client/` — React + Vite frontend
-- `server/` — Express + TypeScript backend (PostgreSQL, AWS Cognito)
-- `server-dotnet/` — ASP.NET Core backend (SQL Server, ASP.NET Identity)
-
-## Main Features
-
-- Customer storefront with product catalog, cart, and wishlist
-- Role-based access control (customer / admin / superadmin)
-- Stripe Checkout session integration
-- Admin panel — products, orders, promos, manufacturers, users, banner
-- **TypeScript server:** AWS Cognito auth (email/password + Google OAuth), Swagger API docs, Vitest + Supertest integration tests
-- **ASP.NET Core server:** ASP.NET Identity bearer-token auth, EF Core migrations, xUnit integration tests
-
-## Run
-
-### TypeScript server
-
-```bash
-cd client && pnpm install
-cd ../server && pnpm install
+```
+.
+├── client/                   # React + Vite frontend
+├── server/                   # TypeScript + Express backend (PostgreSQL, Cognito)
+├── server-dotnet/            # ASP.NET Core backend (SQL Server, ASP.NET Identity)
+├── server-c-rest/            # C REST variant
+├── server-c-graphql/         # C GraphQL variant
+├── server-c-ecs/             # ECS deployment variant
+├── server-c-eks/             # EKS deployment variant
+└── server-less/              # Serverless deployment variants
+    ├── rest-lambda/          # REST API on Lambda
+    ├── graphql-lambda/       # GraphQL API on Lambda
+    ├── ecs/                  # ECS microservices
+    └── eks/                  # EKS microservices
 ```
 
+---
+
+## Environment
+
+### TypeScript server (`server/.env`)
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=ecommerce
+
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_CURRENCY=usd
+
+AWS_REGION=us-east-1
+AWS_COGNITO_USER_POOL_ID=your_user_pool_id
+AWS_COGNITO_CLIENT_ID=your_client_id
+
+FRONTEND_URL=http://localhost:5173
+PORT=3001
+NODE_ENV=development
+```
+
+### ASP.NET Core server (`server-dotnet/src/Ecommerce.Api/appsettings.json`)
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=Ecommerce;Trusted_Connection=True;TrustServerCertificate=True"
+  },
+  "Stripe": {
+    "SecretKey": "sk_test_...",
+    "Currency": "php"
+  },
+  "FrontendUrl": "http://localhost:5173"
+}
+```
+
+---
+
+## Start
+
+### TypeScript stack
+
 ```bash
+# Install
+pnpm install
+
+# Run frontend (http://localhost:5173)
 cd client && pnpm dev
+
+# Run backend (http://localhost:3001)
 cd server && pnpm dev
 ```
 
-### ASP.NET Core server (dotnet branch)
+### ASP.NET Core stack
 
 ```bash
 cd server-dotnet
 dotnet restore
+dotnet ef database update --project src/Ecommerce.Infrastructure --startup-project src/Ecommerce.Api
 dotnet run --project src/Ecommerce.Api
 ```
-
-See `server-dotnet/README.md` for configuration and database setup.
-
-## Notes
-
-- Each workspace (`client`, `server`, `server-dotnet`) has its own README with setup details.
-- This repo also contains a large local image/data set used for seeded catalog content.

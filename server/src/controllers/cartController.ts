@@ -7,7 +7,7 @@ import {
 } from "../dtos/cartDto.js";
 import * as cartService from "../services/carts/cartService.js";
 
-function assertUser(req: AuthenticatedRequest, res: Response): req is AuthenticatedRequest & { user: NonNullable<AuthenticatedRequest["user"]> } {
+function assertUser(req: AuthenticatedRequest, res: Response): req is AuthenticatedRequest & { user: NonNullable<AuthenticatedRequest["user"]> & { email: string } } {
   if (!req.user?.sub || !req.user.email) {
     res.status(401).json({ message: "Unauthorized" });
     return false;

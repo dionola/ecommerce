@@ -10,11 +10,17 @@ import {
   OrderIdParamDtoType
 } from "../dtos/orderDto.js";
 
-async function getOrders(req: AuthenticatedRequest, res: Response) {
-    if (!req.user?.sub) {
+function assertUser(req: AuthenticatedRequest, res: Response): req is AuthenticatedRequest & { user: NonNullable<AuthenticatedRequest["user"]> & { email: string } } {
+    if (!req.user?.sub || !req.user.email) {
         res.status(401).json({ message: "Unauthorized" });
-        return;
+        return false;
     }
+
+    return true;
+}
+
+async function getOrders(req: AuthenticatedRequest, res: Response) {
+    if (!assertUser(req, res)) return;
     
     const query = res.locals.query as GetOrdersQueryParamsDtoType;
     
@@ -34,10 +40,7 @@ async function getOrders(req: AuthenticatedRequest, res: Response) {
 }
 
 async function getOrderById(req: AuthenticatedRequest, res: Response) {
-    if (!req.user?.sub) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
-    }
+    if (!assertUser(req, res)) return;
     
     const params = res.locals.params as OrderIdParamDtoType;
     
@@ -76,10 +79,7 @@ async function createOrder(req: AuthenticatedRequest, res: Response) {
 }
 
 async function updateOrder(req: AuthenticatedRequest, res: Response) {
-    if (!req.user?.sub) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
-    }
+    if (!assertUser(req, res)) return;
     
     const params = res.locals.params as OrderIdParamDtoType;
     const body = res.locals.body as UpdateOrderDtoType;
@@ -108,6 +108,5 @@ async function deleteOrder(req: AuthenticatedRequest, res: Response) {
 }
 
 export default { getOrders, getOrderById, createOrder, updateOrder, deleteOrder };
-
 
 

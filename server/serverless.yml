@@ -1,0 +1,71 @@
+service: ecommerce-api
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    platform: node
+    target: node20
+    format: cjs
+    sourcemap: false
+    minify: false
+    keepNames: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${opt:region, 'ap-southeast-1'}
+  stage: ${opt:stage, 'prod'}
+  memorySize: 512
+  timeout: 30
+  httpApi:
+    cors:
+      allowedOrigins:
+        - ${ssm:/dionola/${sls:stage}/e-commerce-store/FRONTEND_URL}
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PATCH
+        - DELETE
+        - OPTIONS
+      allowCredentials: true
+  environment:
+    NODE_ENV: production
+    AWS_COGNITO_CLIENT_ID: ${ssm:/dionola/${sls:stage}/e-commerce-store/AWS_COGNITO_CLIENT_ID}
+    AWS_COGNITO_CLIENT_SECRET: ${ssm:/dionola/${sls:stage}/e-commerce-store/AWS_COGNITO_CLIENT_SECRET}
+    AWS_COGNITO_USER_POOL_ID: ${ssm:/dionola/${sls:stage}/e-commerce-store/AWS_COGNITO_USER_POOL_ID}
+    DATABASE_URL: ${ssm:/dionola/${sls:stage}/e-commerce-store/DATABASE_URL}
+    DB_HOST: ${ssm:/dionola/${sls:stage}/e-commerce-store/DB_HOST}
+    DB_NAME: ${ssm:/dionola/${sls:stage}/e-commerce-store/DB_NAME}
+    DB_PASSWORD: ${ssm:/dionola/${sls:stage}/e-commerce-store/DB_PASSWORD}
+    DB_PORT: ${ssm:/dionola/${sls:stage}/e-commerce-store/DB_PORT}
+    DB_USER: ${ssm:/dionola/${sls:stage}/e-commerce-store/DB_USER}
+    FRONTEND_URL: ${ssm:/dionola/${sls:stage}/e-commerce-store/FRONTEND_URL}
+    GOOGLE_CLIENT_ID: ${ssm:/dionola/${sls:stage}/e-commerce-store/GOOGLE_CLIENT_ID}
+    GOOGLE_CLIENT_SECRET: ${ssm:/dionola/${sls:stage}/e-commerce-store/GOOGLE_CLIENT_SECRET}
+    STRIPE_SECRET_KEY: ${ssm:/dionola/${sls:stage}/e-commerce-store/STRIPE_SECRET_KEY}
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/.cache/**'
+    - '!db/**'
+    - '!coverage/**'
+
+functions:
+  api:
+    handler: src/lambda.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+      - httpApi:
+          path: /
+          method: ANY

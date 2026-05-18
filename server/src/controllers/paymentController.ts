@@ -104,9 +104,9 @@ async function verifyCheckoutSession(req: AuthenticatedRequest, res: Response) {
     return res.status(503).json({ error: "Payments are currently unavailable" });
   }
 
-  const { sessionId } = req.params;
+  const sessionId = req.params.sessionId;
 
-  if (!sessionId) {
+  if (typeof sessionId !== "string" || !sessionId) {
     return res.status(400).json({ error: "Session ID is required" });
   }
 

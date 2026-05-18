@@ -15,15 +15,6 @@ export function MobileMenu({ isAuthenticated, isAdmin, isSuperAdmin, isOpen, onC
   return (
     <div className="md:hidden border-t border-border bg-background">
       <div className="px-6 py-4 space-y-4">
-        <Link to="/#collection" onClick={onClose} className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
-          Catalog
-        </Link>
-        <Link to="/about" onClick={onClose} className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
-          About
-        </Link>
-        <Link to="/contact" onClick={onClose} className="block text-sm font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
-          Contact
-        </Link>
         {isAuthenticated && (
           <div className="border-t border-border pt-4 mt-4">
             <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">Account</div>

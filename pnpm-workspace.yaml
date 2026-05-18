@@ -1,3 +1,7 @@
 packages:
   - client
   - server
+  - server-c-rest
+  - server-c-graphql
+  - server-c-ecs
+  - server-c-eks

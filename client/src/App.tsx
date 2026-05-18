@@ -11,10 +11,8 @@ import Wishlist from './pages/Wishlist'
 import Settings from './pages/Settings'
 import Checkout from './pages/Checkout'
 import CheckoutReturn from './pages/CheckoutReturn'
-import About from './pages/About'
 import Shipping from './pages/Shipping'
 import Returns from './pages/Returns'
-import Contact from './pages/Contact'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminOrders from './pages/admin/AdminOrders'
@@ -41,10 +39,8 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/checkout/return" element={<CheckoutReturn />} />
-              <Route path="/about" element={<About />} />
               <Route path="/shipping" element={<Shipping />} />
               <Route path="/returns" element={<Returns />} />
-              <Route path="/contact" element={<Contact />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/orders" element={<AdminOrders />} />

@@ -7,9 +7,7 @@ export const CreateUserDto = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
   fullName: z.string().optional(),
-  role: z.enum(["admin", "superadmin"], {
-    errorMap: () => ({ message: "Role must be 'admin' or 'superadmin'" }),
-  }),
+  role: z.enum(["admin", "superadmin"], "Role must be 'admin' or 'superadmin'"),
 });
 
 export type CreateUserDtoType = z.infer<typeof CreateUserDto>;
@@ -28,9 +26,7 @@ export const CreateUserResponseDto = z.object({
 export type CreateUserResponseDtoType = z.infer<typeof CreateUserResponseDto>;
 
 export const UpdateUserRoleDto = z.object({
-  role: z.enum(["admin", "superadmin"], {
-    errorMap: () => ({ message: "Role must be 'admin' or 'superadmin'" }),
-  }),
+  role: z.enum(["admin", "superadmin"], "Role must be 'admin' or 'superadmin'"),
 });
 
 export type UpdateUserRoleDtoType = z.infer<typeof UpdateUserRoleDto>;

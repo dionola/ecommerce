@@ -32,17 +32,7 @@ export function Footer() {
               <ul className="space-y-2 text-sm uppercase tracking-widest font-medium">
                 <li>
                   <Link to="/" className="hover:text-background/60 transition-colors">
-                    Catalog
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/about" className="hover:text-background/60 transition-colors">
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/contact" className="hover:text-background/60 transition-colors">
-                    Contact
+                    Shop
                   </Link>
                 </li>
               </ul>
@@ -71,11 +61,6 @@ export function Footer() {
                   </a>
                 </li>
                 <li>
-                  <Link to="/about" className="hover:text-background/60 transition-colors">
-                    About Demo
-                  </Link>
-                </li>
-                <li>
                   <a
                     href="https://github.com/luminati-io/HM-dataset-sample"
                     target="_blank"
@@ -95,11 +80,7 @@ export function Footer() {
             © 2026 dionola. Stephen's test e-commerce site.
           </p>
           <div className="text-5xl font-bold tracking-tighter uppercase opacity-10">dionola</div>
-          <div className="flex items-center gap-4 text-[10px] tracking-widest uppercase font-bold text-background/40">
-            <Link to="/contact" className="hover:text-background/60 transition-colors">
-              Contact
-            </Link>
-          </div>
+          <div className="flex items-center gap-4 text-[10px] tracking-widest uppercase font-bold text-background/40"></div>
         </div>
       </div>
     </footer>

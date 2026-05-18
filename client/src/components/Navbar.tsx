@@ -43,20 +43,6 @@ export function Navbar() {
           <Link to="/" className="text-2xl font-bold tracking-tighter uppercase">
             dionola
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            <Link
-              to="/#collection"
-              className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
-            >
-              Catalog
-            </Link>
-            <Link to="/about" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
-              About
-            </Link>
-            <Link to="/contact" className="hover:text-foreground transition-colors underline-offset-4 hover:underline">
-              Contact
-            </Link>
-          </div>
         </div>
 
         <div className="flex items-center gap-6">
